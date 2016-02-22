@@ -16,6 +16,8 @@ except ImportError:
     raise
 
 import apoio
+import write_input_file as wif
+import perfil
 
 """
  Todos os pesos estão em kg. 
@@ -53,13 +55,19 @@ class Construtor2016(object):
     k_asa = [0.41716, 0.5] # Constantes para o calculo da densidade da asa 
     m_carga = 12 # Carga projetada em 2015
     ro_carga = 8.8e3 #Densidade do bronze
+    vel_som = 340.0
+    mi_ar = 1.962e-5
+    ro_ar = 1.086
     
-    def __init__(self,ang_clear,dz_asas,
+    def __init__(self,name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
                  cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
                  cr_asat,ang_asat):    
         # Parametros gerais iteráveis
         self.ang_clear = ang_clear
         self.dz_asas = dz_asas 
+        self.vel = vel
+        self.perfil_raiz = str(perfil_raiz)
+        self.perfil_ponta = str(perfil_ponta)
         
         # Parametros de asa frontal        
         self.cr_asaf = cr_asaf
@@ -77,18 +85,22 @@ class Construtor2016(object):
         #Calculos para a asa frontal
         self.pos_ba_cr_asaf, self.pos_bf_cr_asaf, self.ang_cr_asaf,\
         self.pos_ba_ct_asaf, self.pos_bf_ct_asaf, self.ang_ct_asaf,\
-        self.S_asaf, self.AR_asaf = self.asa_frontal()
+        self.S_asaf, self.bw_asaf, self.AR_asaf = self.asa_frontal()
         
         #Calculos para a asa traseira 
         self.pos_ba_cr_asat, self.pos_bf_cr_asat, self.ang_cr_asat,\
         self.pos_ba_ct_asat, self.pos_bf_ct_asat, self.ang_ct_asat,\
-        self.S_asat, self.AR_asat = self.asa_traseira()
+        self.S_asat, self.bw_asat, self.AR_asat = self.asa_traseira()
         
         #Posição do CG levando em conta pesos do motor e asas
         self.pos_cg, self.p_vazio = self.cg()
         
         #Tensor de inercia do aviao
         self.J = self.inercia()
+        
+        # Escreve arquivo '.avl'
+        header, asas = self.input_val()
+        wif.Input_geometry(name,header,asas)
         
     def densidade_asas(self,AR):
         """
@@ -189,15 +201,15 @@ class Construtor2016(object):
             
         def AR():
             bw = 2*((pos_ba_ct[1]-pos_ba_cr[1])**2+(pos_ba_ct[2]-pos_ba_cr[2])**2)
-            return bw**2/Sw 
+            return bw,bw**2/Sw 
         
         pos_ba_cr, pos_bf_cr, ang_cr = pos_cr()
         pos_ba_ct, pos_bf_ct, ang_ct = pos_ct()
             
         Sw = Sw()
-        AR = AR()  
+        bw,AR = AR()  
         
-        return pos_ba_cr, pos_bf_cr, ang_cr, pos_ba_ct, pos_bf_ct, ang_ct, Sw, AR
+        return pos_ba_cr, pos_bf_cr, ang_cr, pos_ba_ct, pos_bf_ct, ang_ct, Sw, bw, AR
     
     def asa_traseira(self):
         """
@@ -236,15 +248,15 @@ class Construtor2016(object):
             
         def AR():
             bw = 2*((pos_ba_ct[1]-pos_ba_cr[1])**2+(pos_ba_ct[2]-pos_ba_cr[2])**2)
-            return bw**2/Sw        
+            return bw, bw**2/Sw        
         
         pos_ba_cr, pos_bf_cr, ang_cr = pos_cr()
         pos_ba_ct, pos_bf_ct, ang_ct = pos_ct()
         
         Sw = Sw()
-        AR = AR() 
+        bw, AR = AR() 
         
-        return pos_ba_cr, pos_bf_cr, ang_cr, pos_ba_ct, pos_bf_ct, ang_ct, Sw, AR
+        return pos_ba_cr, pos_bf_cr, ang_cr, pos_ba_ct, pos_bf_ct, ang_ct, Sw, bw, AR
 
     def formato(self):
         """
@@ -340,7 +352,47 @@ class Construtor2016(object):
             return J_asaf+J_asat+J_motor+J_carga
         else:
             return J_asaf+J_asat+J_motor
-                                 
+    
+    def input_val(self,Nchord,Cspace,Nspace,Sspace):
+        """
+        Funçao que retorna os valores necessários para criar o arquivo 
+        de input do AVL.
+        """
+        mach = self.vel/self.vel_som
+        iYsym = iZsym = 0
+        Zsym = 0.0
+        Sref = self.S_asaf
+        Cref = self.cr_asaf
+        Bref = self.bw_asaf
+        Xref,Yref,Zref = self.pos_cg
+        CDp = 0.0
+        header = [mach,iYsym,iZsym,Zsym,Sref,Cref,Bref,Xref,Yref,Zref,CDp]
+                  
+        DISC = [Nchord ,Cspace, Nspace, Sspace]
+        YDUPLICATE = ANGLE = 0.0
+        SCALE = TRANSLATE = np.zeros(3)
+            
+        AFILE_raiz = 'Perfis/'+self.perfil_raiz+'.dat'
+        AFILE_ponta = 'Perfis/'+self.perfil_raiz+'.dat'
+        
+        def CLAF_raiz(asa):
+            if asa == 'asaf':
+                Re = self.ro_ar*self.cr_asaf/self.mi_ar
+            elif asa == 'asat':
+                Re = self.ro_ar*self.cr_asat/self.mi_ar               
+            dcl = perfil.Analise(self.perfil_raiz).ajustelinear(Re,mach)['dCl'][0]
+            return dcl*180/(2*np.pi**2)
+            
+        def CLAF_ponta():
+            Re = self.ro_ar*self.ct_asaf/self.mi_ar
+            dcl = perfil.Analise(self.perfil_ponta).ajustelinear(Re,mach)['dCl'][0]
+            return dcl*180/(2*np.pi**2)
+            
+        CLAF_raiz_asaf = CLAF_raiz('asaf')
+        CLAF_raiz_asat = CLAF_raiz('asat')
+        CLAF_ponta = CLAF_ponta()
+        
+        COORD_raiz_asaf = 
             
     def plot(self):
         """
@@ -382,9 +434,10 @@ class Construtor2016(object):
         plt.show()
         
 if __name__ == '__main__':
-    aviao = Construtor2016(3.0,0.35,
+    aviao = Construtor2016(3.0,0.35,15,
                            0.5,0.2,5.0,40.0,-3.0,
                            0.3,2.0)
     aviao.plot()
-    print aviao.inercia(False)
-    print aviao.p_vazio
+    print 'Tensor de inercia\n', aviao.inercia(False)
+    print '\nPeso vazio\n', aviao.p_vazio
+    print aviao.header

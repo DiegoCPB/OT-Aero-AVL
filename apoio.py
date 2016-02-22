@@ -9,7 +9,8 @@ print("\nCarregando modulos de 'Apoio'...")
 
 try:
     import numpy as np
-    from os import chdir, makedirs, getcwd
+    from os import chdir, makedirs, listdir, getcwd
+    from os.path import dirname, realpath, isfile, join
     from bisect import bisect_right, bisect_left
     print("Modulos de 'Apoio' foram carregados com sucesso!")
 except ImportError:
@@ -137,7 +138,19 @@ def executarNaPasta(string):
        return wrapper
    return nested
    
-   
+def interplinear(x1,y1,x2,y2,x):   
+    if x1<=x<=x2 or x2<=x<=x1:
+        try:
+            y = ((x-x1)*y2+(x2-x)*y1)/(x2-x1)
+        except ZeroDivisionError:
+            y = y1
+    else:
+        print('\nx1 = %f' %(x1))
+        print('x =  %f' %(x))
+        print('x2 = %f' %(x2))
+        raise ValueError("O ponto está fora do intervalo")
+    return y 
+  
 def intervalo(lista, valor):
     lista = sorted(lista)
 #    print lista
@@ -172,3 +185,24 @@ def intervalo(lista, valor):
     valor_depois = achar_menor_depois()
             
     return valor_antes, valor_depois
+    
+def lerDir(pasta, name, local = __file__):
+    diretorio = dirname(realpath(local))
+    diretorio = diretorio + pasta
+    lista = []
+    for i in listdir(diretorio):
+        if isfile(join(diretorio,i)) and name+'_' in i:
+            lista.append(i)
+    return sorted(lista)
+      
+def lerDirPerfil_Re_Mach(name,local=__file__):
+    lista = lerDir('/Perfis', name, local) 
+    listaRe = []
+    listaMach = []
+    for i in range(len(lista)):
+        listaRe.append(int(float(lista[i][len(name)+6:len(name)+11])*10**6))
+        listaMach.append(float(lista[i][len(name)+13:len(name)+17]))
+    listaRe = sorted(set(listaRe))
+    listaMach = sorted(set(listaMach))   
+    
+    return listaRe, listaMach
