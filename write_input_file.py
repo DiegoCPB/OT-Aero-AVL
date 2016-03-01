@@ -24,7 +24,7 @@ class Input_geometry(object):
 
     @apoio.executarNaPasta('Runs')
     def create_file(self):
-        self.arquivo = open(self.name+'.avl','w')
+        self.arquivo = open(self.name+'.avl','wb')
         self.write_header()
         self.write_surfaces()
         self.arquivo.close()
@@ -56,7 +56,7 @@ class Input_geometry(object):
         INPUT
         -----
         * asas :         {surface_1, surface_2, ...}
-         * surface_i :   [DISC, YDUPLICATE, SCALE, TRANSLATE, ANGLE, SECTION]
+         * surface_i :   [DISC, YDUPLICATE, ANGLE, SECTION]
           * DISC :       [Nchord ,Cspace, Nspace, Sspace]
           * YDUPLICATE : Ydupl
           * SCALE :      [Xscale, Yscale, Zscale]
@@ -85,20 +85,10 @@ class Input_geometry(object):
                     self.arquivo.write('%.2f\n\n' %(VAL))
                     
                 elif i == 2:
-                    self.arquivo.write('SCALE\n')
-                    self.arquivo.write('%.2f %.2f %.2f\n\n' %(VAL[0],VAL[1],
-                                                         VAL[2]))
-                    
-                elif i == 3:
-                    self.arquivo.write('TRANSLATE\n')
-                    self.arquivo.write('%.2f %.2f %.2f\n\n' %(VAL[0],VAL[1],
-                                                         VAL[2]))
-                                                         
-                elif i == 4:
                     self.arquivo.write('ANGLE\n')
                     self.arquivo.write('%.2f\n' %(VAL))
                     
-                elif i == 5:
+                elif i == 3:
                     for j in range(len(VAL)):
                         self.arquivo.write('#'+79*'-'+'\n')
                         self.arquivo.write('SECTION\n')
@@ -106,9 +96,9 @@ class Input_geometry(object):
                         for k in range(len(PAR)):
                             NUM = PAR[k]
                             if k == 0:
-                                self.arquivo.write('%.2f %.2f %.2f %.2f %.2f %d %d \n\n' %(NUM[0],NUM[1],
-                                                                                           NUM[2],NUM[3],
-                                                                                           NUM[4],NUM[5],NUM[6]))
+                                self.arquivo.write('%f %f %f %f %f %d %d \n\n' %(NUM[0],NUM[1],
+                                                                                 NUM[2],NUM[3],
+                                                                                 NUM[4],NUM[5],NUM[6]))
                             elif k == 1:
                                 self.arquivo.write('AFILE\n')
                                 self.arquivo.write('%s\n\n' %(NUM))

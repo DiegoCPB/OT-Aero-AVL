@@ -377,7 +377,6 @@ class Construtor2016(object):
         # Definicao das asas
         DISC = [Nchord ,Cspace, Nspace, Sspace]
         YDUPLICATE = ANGLE = 0.0
-        SCALE = TRANSLATE = [0.0,0.0,0.0]
             
         AFILE_raiz = "\"Perfis\%s.dat\"" %(self.perfil_raiz)
         AFILE_ponta = "\"Perfis\%s.dat\"" %(self.perfil_ponta)
@@ -426,13 +425,13 @@ class Construtor2016(object):
         
         SECTION_frontal = [[COORD_raiz_asaf,AFILE_raiz,CLAF_raiz_asaf], 
                            [COORD_ponta_asaf,AFILE_ponta,CLAF_ponta]]        
-        asa_frontal = [DISC, YDUPLICATE, SCALE, TRANSLATE, ANGLE, SECTION_frontal]
+        asa_frontal = [DISC, YDUPLICATE, ANGLE, SECTION_frontal]
     
         SECTION_traseira = [[COORD_raiz_asat,AFILE_raiz,CLAF_raiz_asat], 
                             [COORD_ponta_asat,AFILE_ponta,CLAF_ponta]]  
-        asa_traseira = [DISC, YDUPLICATE, SCALE, TRANSLATE, ANGLE, SECTION_traseira]
+        asa_traseira = [DISC, YDUPLICATE, ANGLE, SECTION_traseira]
         
-        asas = {'Asa_frontal':asa_frontal,'Asa_traseira':asa_traseira}        
+        asas = {'Frontal':asa_frontal,'Traseira':asa_traseira}        
         
         return header, asas
             
@@ -482,13 +481,13 @@ if __name__ == '__main__':
     vel = 15
     perfil_raiz = 'S1223 MOD2015'
     perfil_ponta = 'MIN ponta2016'
-    cr_asaf = 0.5
+    cr_asaf = 0.35
     ct_asaf = 0.25
     ang_asaf = 5.0
-    enflex_asaf = 40.0
+    enflex_asaf = 45.0
     epsilon_asaf = -3.0
     cr_asat = 0.3
-    ang_asat = 2.0
+    ang_asat = 5.0
     
     aviao = Construtor2016(name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
                            cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
