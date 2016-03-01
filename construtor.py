@@ -31,7 +31,7 @@ class Construtor2016(object):
     pelo regulamento do ano vigente. O regulamento de 2016 estabeleceu 
     hangaragem em um cone de 2.5m de diâmetro e 0.75m de altura.
     
-    As coordenadas estão dispostas no padrão do software Athena Vortes Lattice.
+    As coordenadas estão dispostas no padrão do software Athena Vortex Lattice.
     
     INPUTS:
     ------
@@ -58,6 +58,12 @@ class Construtor2016(object):
     vel_som = 340.0
     mi_ar = 1.962e-5
     ro_ar = 1.086
+
+    #Parametros de discretizaçao das asas
+    Nchord = 8
+    Cspace = 1.0
+    Nspan = 12
+    Sspace = -2.0
     
     def __init__(self,name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
                  cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
@@ -99,7 +105,7 @@ class Construtor2016(object):
         self.J = self.inercia()
         
         # Escreve arquivo '.avl'
-        header, asas = self.input_val()
+        header, asas = self.input_val(self.Nchord,self.Cspace,self.Nspan,self.Sspace)
         wif.Input_geometry(name,header,asas)
         
     def densidade_asas(self,AR):
@@ -358,6 +364,7 @@ class Construtor2016(object):
         Funçao que retorna os valores necessários para criar o arquivo 
         de input do AVL.
         """
+        # Definiçao do header
         mach = self.vel/self.vel_som
         iYsym = iZsym = 0
         Zsym = 0.0
@@ -365,26 +372,27 @@ class Construtor2016(object):
         Cref = self.cr_asaf
         Bref = self.bw_asaf
         Xref,Yref,Zref = self.pos_cg
-        CDp = 0.0
-        header = [mach,iYsym,iZsym,Zsym,Sref,Cref,Bref,Xref,Yref,Zref,CDp]
-                  
+        header = [mach,iYsym,iZsym,Zsym,Sref,Cref,Bref,Xref,Yref,Zref]
+           
+        # Definicao das asas
         DISC = [Nchord ,Cspace, Nspace, Sspace]
         YDUPLICATE = ANGLE = 0.0
-        SCALE = TRANSLATE = np.zeros(3)
+        SCALE = TRANSLATE = [0.0,0.0,0.0]
             
-        AFILE_raiz = 'Perfis/'+self.perfil_raiz+'.dat'
-        AFILE_ponta = 'Perfis/'+self.perfil_raiz+'.dat'
+        AFILE_raiz = "\"Perfis\%s.dat\"" %(self.perfil_raiz)
+        AFILE_ponta = "\"Perfis\%s.dat\"" %(self.perfil_ponta)
         
         def CLAF_raiz(asa):
             if asa == 'asaf':
-                Re = self.ro_ar*self.cr_asaf/self.mi_ar
+                corda = self.cr_asaf
             elif asa == 'asat':
-                Re = self.ro_ar*self.cr_asat/self.mi_ar               
+                corda = self.cr_asat 
+            Re = self.ro_ar*corda*self.vel/self.mi_ar
             dcl = perfil.Analise(self.perfil_raiz).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
             
         def CLAF_ponta():
-            Re = self.ro_ar*self.ct_asaf/self.mi_ar
+            Re = self.ro_ar*self.ct_asaf*self.vel/self.mi_ar
             dcl = perfil.Analise(self.perfil_ponta).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
             
@@ -392,7 +400,41 @@ class Construtor2016(object):
         CLAF_raiz_asat = CLAF_raiz('asat')
         CLAF_ponta = CLAF_ponta()
         
-        COORD_raiz_asaf = 
+        def COORD(string):
+            if string == 'raiz_asaf':
+                Xle,Yle,Zle = self.pos_ba_cr_asaf
+                Chord = self.cr_asaf
+                Ainc = self.ang_cr_asaf
+            elif string == 'raiz_asat':
+                Xle,Yle,Zle = self.pos_ba_cr_asat
+                Chord = self.cr_asat
+                Ainc = self.ang_cr_asat
+            elif string == 'ponta_asaf':
+                Xle,Yle,Zle = self.pos_ba_ct_asaf
+                Chord = self.ct_asaf
+                Ainc = self.ang_ct_asaf
+            elif string == 'ponta_asat':
+                Xle,Yle,Zle = self.pos_ba_ct_asat
+                Chord = self.ct_asat
+                Ainc = self.ang_ct_asat
+            return [Xle,Yle,Zle,Chord,Ainc,0,0]
+            
+        COORD_raiz_asaf = COORD('raiz_asaf')
+        COORD_raiz_asat = COORD('raiz_asat')
+        COORD_ponta_asaf = COORD('ponta_asaf')
+        COORD_ponta_asat = COORD('ponta_asat')
+        
+        SECTION_frontal = [[COORD_raiz_asaf,AFILE_raiz,CLAF_raiz_asaf], 
+                           [COORD_ponta_asaf,AFILE_ponta,CLAF_ponta]]        
+        asa_frontal = [DISC, YDUPLICATE, SCALE, TRANSLATE, ANGLE, SECTION_frontal]
+    
+        SECTION_traseira = [[COORD_raiz_asat,AFILE_raiz,CLAF_raiz_asat], 
+                            [COORD_ponta_asat,AFILE_ponta,CLAF_ponta]]  
+        asa_traseira = [DISC, YDUPLICATE, SCALE, TRANSLATE, ANGLE, SECTION_traseira]
+        
+        asas = {'Asa_frontal':asa_frontal,'Asa_traseira':asa_traseira}        
+        
+        return header, asas
             
     def plot(self):
         """
@@ -434,10 +476,21 @@ class Construtor2016(object):
         plt.show()
         
 if __name__ == '__main__':
-    aviao = Construtor2016(3.0,0.35,15,
-                           0.5,0.2,5.0,40.0,-3.0,
-                           0.3,2.0)
+    name = 'Test plane'
+    ang_clear = 3.0
+    dz_asas = 0.35
+    vel = 15
+    perfil_raiz = 'S1223 MOD2015'
+    perfil_ponta = 'MIN ponta2016'
+    cr_asaf = 0.5
+    ct_asaf = 0.25
+    ang_asaf = 5.0
+    enflex_asaf = 40.0
+    epsilon_asaf = -3.0
+    cr_asat = 0.3
+    ang_asat = 2.0
+    
+    aviao = Construtor2016(name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
+                           cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
+                           cr_asat,ang_asat)
     aviao.plot()
-    print 'Tensor de inercia\n', aviao.inercia(False)
-    print '\nPeso vazio\n', aviao.p_vazio
-    print aviao.header
