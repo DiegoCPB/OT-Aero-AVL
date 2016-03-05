@@ -58,22 +58,23 @@ class Construtor2016(object):
     vel_som = 340.0
     mi_ar = 1.962e-5
     ro_ar = 1.086
+    g = 9.8
 
     #Parametros de discretizaçao das asas
-    Nchord = 8
+    Nchord = 12
     Cspace = 1.0
-    Nspan = 12
+    Nspan = 25
     Sspace = -2.0
     
-    def __init__(self,name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
+    def __init__(self,name,ang_clear,dz_asas, vel, 
                  cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                 cr_asat,ang_asat):    
+                 perfilr_asaf, perfilp_asaf,
+                 cr_asat,ang_asat,perfilr_asat, perfilp_asat):    
         # Parametros gerais iteráveis
+        self.name = name
         self.ang_clear = ang_clear
         self.dz_asas = dz_asas 
         self.vel = vel
-        self.perfil_raiz = str(perfil_raiz)
-        self.perfil_ponta = str(perfil_ponta)
         
         # Parametros de asa frontal        
         self.cr_asaf = cr_asaf
@@ -81,12 +82,16 @@ class Construtor2016(object):
         self.ang_asaf = ang_asaf
         self.enflex_asaf = enflex_asaf
         self.epsilon_asaf = epsilon_asaf
+        self.perfilr_asaf = str(perfilr_asaf)
+        self.perfilp_asaf = str(perfilp_asaf)
         
         #Parametros de asa traseira
         self.cr_asat = cr_asat
         self.ct_asat = ct_asaf 
         self.ang_asat = ang_asat
         self.epsilon_asat = ang_asaf+epsilon_asaf-ang_asat
+        self.perfilr_asat = str(perfilr_asat)
+        self.perfilp_asat = str(perfilp_asat)        
         
         #Calculos para a asa frontal
         self.pos_ba_cr_asaf, self.pos_bf_cr_asaf, self.ang_cr_asaf,\
@@ -99,14 +104,21 @@ class Construtor2016(object):
         self.S_asat, self.bw_asat, self.AR_asat = self.asa_traseira()
         
         #Posição do CG levando em conta pesos do motor e asas
-        self.pos_cg, self.p_vazio = self.cg()
+        self.pos_cg, self.m_vazio = self.cg()
         
         #Tensor de inercia do aviao
         self.J = self.inercia()
         
         # Escreve arquivo '.avl'
         header, asas = self.input_val(self.Nchord,self.Cspace,self.Nspan,self.Sspace)
-        wif.Input_geometry(name,header,asas)
+        wif.Input_geometry(self.name,header,asas)
+        
+        #Escreve arquivo '.mass'
+        inertia = [self.m_vazio+self.m_carga,
+                   self.pos_cg[0],self.pos_cg[1],self.pos_cg[2],
+                   self.J[0,0],self.J[1,1],self.J[2,2],
+                   self.J[0,1],self.J[0,2],self.J[1,2]]
+        wif.Input_mass(name,self.g,self.ro_ar,inertia)
         
     def densidade_asas(self,AR):
         """
@@ -206,7 +218,7 @@ class Construtor2016(object):
             return np.linalg.norm(S1+S2)
             
         def AR():
-            bw = 2*((pos_ba_ct[1]-pos_ba_cr[1])**2+(pos_ba_ct[2]-pos_ba_cr[2])**2)
+            bw = 2*pos_ba_ct[1]
             return bw,bw**2/Sw 
         
         pos_ba_cr, pos_bf_cr, ang_cr = pos_cr()
@@ -253,7 +265,7 @@ class Construtor2016(object):
             return np.linalg.norm(S1+S2)
             
         def AR():
-            bw = 2*((pos_ba_ct[1]-pos_ba_cr[1])**2+(pos_ba_ct[2]-pos_ba_cr[2])**2)
+            bw = 2*pos_ba_ct[1]
             return bw, bw**2/Sw        
         
         pos_ba_cr, pos_bf_cr, ang_cr = pos_cr()
@@ -368,7 +380,7 @@ class Construtor2016(object):
         mach = self.vel/self.vel_som
         iYsym = iZsym = 0
         Zsym = 0.0
-        Sref = self.S_asaf
+        Sref = self.S_asaf+self.S_asat
         Cref = self.cr_asaf
         Bref = self.bw_asaf
         Xref,Yref,Zref = self.pos_cg
@@ -378,26 +390,38 @@ class Construtor2016(object):
         DISC = [Nchord ,Cspace, Nspace, Sspace]
         YDUPLICATE = ANGLE = 0.0
             
-        AFILE_raiz = "\"Perfis\%s.dat\"" %(self.perfil_raiz)
-        AFILE_ponta = "\"Perfis\%s.dat\"" %(self.perfil_ponta)
+        AFILE_raiz_asaf = "\"Perfis\%s.dat\"" %(self.perfilr_asaf)
+        AFILE_ponta_asaf = "\"Perfis\%s.dat\"" %(self.perfilp_asaf)
+        AFILE_raiz_asat = "\"Perfis\%s.dat\"" %(self.perfilr_asat)
+        AFILE_ponta_asat = "\"Perfis\%s.dat\"" %(self.perfilp_asat)
         
-        def CLAF_raiz(asa):
-            if asa == 'asaf':
+        def CLAF_asaf(string):
+            if string == 'raiz':
                 corda = self.cr_asaf
-            elif asa == 'asat':
-                corda = self.cr_asat 
+                aerofolio = self.perfilr_asaf 
+            elif string == 'ponta':
+                corda = self.ct_asaf 
+                aerofolio = self.perfilp_asaf 
             Re = self.ro_ar*corda*self.vel/self.mi_ar
-            dcl = perfil.Analise(self.perfil_raiz).ajustelinear(Re,mach)['dCl'][0]
+            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
             
-        def CLAF_ponta():
-            Re = self.ro_ar*self.ct_asaf*self.vel/self.mi_ar
-            dcl = perfil.Analise(self.perfil_ponta).ajustelinear(Re,mach)['dCl'][0]
+        def CLAF_asat(string):
+            if string == 'raiz':
+                corda = self.cr_asat
+                aerofolio = self.perfilr_asat 
+            elif string == 'ponta':
+                corda = self.ct_asat 
+                aerofolio = self.perfilp_asat 
+            Re = self.ro_ar*corda*self.vel/self.mi_ar
+            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
+        
             
-        CLAF_raiz_asaf = CLAF_raiz('asaf')
-        CLAF_raiz_asat = CLAF_raiz('asat')
-        CLAF_ponta = CLAF_ponta()
+        CLAF_raiz_asaf = CLAF_asaf('raiz')
+        CLAF_raiz_asat = CLAF_asat('raiz')
+        CLAF_ponta_asaf = CLAF_asaf('ponta')
+        CLAF_ponta_asat = CLAF_asat('ponta')
         
         def COORD(string):
             if string == 'raiz_asaf':
@@ -423,73 +447,14 @@ class Construtor2016(object):
         COORD_ponta_asaf = COORD('ponta_asaf')
         COORD_ponta_asat = COORD('ponta_asat')
         
-        SECTION_frontal = [[COORD_raiz_asaf,AFILE_raiz,CLAF_raiz_asaf], 
-                           [COORD_ponta_asaf,AFILE_ponta,CLAF_ponta]]        
+        SECTION_frontal = [[COORD_raiz_asaf,AFILE_raiz_asaf,CLAF_raiz_asaf], 
+                           [COORD_ponta_asaf,AFILE_ponta_asaf,CLAF_ponta_asaf]]        
         asa_frontal = [DISC, YDUPLICATE, ANGLE, SECTION_frontal]
     
-        SECTION_traseira = [[COORD_raiz_asat,AFILE_raiz,CLAF_raiz_asat], 
-                            [COORD_ponta_asat,AFILE_ponta,CLAF_ponta]]  
+        SECTION_traseira = [[COORD_raiz_asat,AFILE_raiz_asat,CLAF_raiz_asat], 
+                            [COORD_ponta_asat,AFILE_ponta_asat,CLAF_ponta_asat]]  
         asa_traseira = [DISC, YDUPLICATE, ANGLE, SECTION_traseira]
         
         asas = {'Frontal':asa_frontal,'Traseira':asa_traseira}        
         
         return header, asas
-            
-    def plot(self):
-        """
-        Função de debug pra verificar em um gráfico 3d se os pontos foram
-        gerados nas posições corretas.
-        """
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-        
-        asaf, asat = self.formato()[2:]        
-        
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.set_xlim3d([-1.25,1.25])
-        ax.set_ylim3d([-1.25,1.25])
-        ax.set_zlim3d([-1.25,1.25])
-        
-        cg = self.pos_cg
-        ax.plot([cg[0]],[cg[1]],[cg[2]],'ro', label='CG')        
-        
-        for i in range(len(asaf)):
-            M = asaf[i]
-            x = np.append(M[:,0],M[0,0])
-            y = np.append(M[:,1],M[0,1])
-            z = np.append(M[:,2],M[0,2])
-            ax.plot(x,y,z)   
-                    
-        for i in range(len(asat)):
-            M = asat[i]
-            x = np.append(M[:,0],M[0,0])
-            y = np.append(M[:,1],M[0,1])
-            z = np.append(M[:,2],M[0,2])
-            ax.plot(x,y,z)
-        
-        plt.legend(loc='best')
-        plt.show()
-        
-if __name__ == '__main__':
-    name = 'Test plane'
-    ang_clear = 3.0
-    dz_asas = 0.35
-    vel = 15
-    perfil_raiz = 'S1223 MOD2015'
-    perfil_ponta = 'MIN ponta2016'
-    cr_asaf = 0.35
-    ct_asaf = 0.25
-    ang_asaf = 5.0
-    enflex_asaf = 45.0
-    epsilon_asaf = -3.0
-    cr_asat = 0.3
-    ang_asat = 5.0
-    
-    aviao = Construtor2016(name,ang_clear,dz_asas, vel, perfil_raiz, perfil_ponta,
-                           cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                           cr_asat,ang_asat)
-    aviao.plot()

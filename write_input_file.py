@@ -46,8 +46,8 @@ class Input_geometry(object):
         self.arquivo.write('%s\n' %(name))
         self.arquivo.write('%.1f\n' %(mach))
         self.arquivo.write('%d %d %.1f\n' %(iYsym, iZsym, Zsym))
-        self.arquivo.write('%.1f %.1f %.1f\n' %(Sref, Cref, Bref))
-        self.arquivo.write('%.1f %.1f %.1f\n' %(Xref, Yref, Zref))
+        self.arquivo.write('%f %f %f\n' %(Sref, Cref, Bref))
+        self.arquivo.write('%f %f %f\n' %(Xref, Yref, Zref))
     
     def write_surfaces(self):
         """
@@ -59,8 +59,6 @@ class Input_geometry(object):
          * surface_i :   [DISC, YDUPLICATE, ANGLE, SECTION]
           * DISC :       [Nchord ,Cspace, Nspace, Sspace]
           * YDUPLICATE : Ydupl
-          * SCALE :      [Xscale, Yscale, Zscale]
-          * TRANSLATE :  [dX, dY, dZ]
           * ANGLE :      dAinc
           * SECTION :    [section_1, section_2, ...]
            * section_i : [COORDS,AFILE,CLAF]
@@ -112,6 +110,46 @@ class Input_mass(object):
     Classe que escreve o arquivo de input da inércia do avião no formato
     do software AVL v3.35
     """
+    def __init__(self,name,g,rho,inertia):
+        self.name = name
+        self.g = g
+        self.rho = rho
+        self.inertia = inertia
+        self.Lunit = self.Munit = self.Tunit = 1.0 #Os valores estão em mks
+        
+        # Escreve o arquivo de geometria
+        self.create_file()        
+        
+    @apoio.executarNaPasta('Runs')
+    def create_file(self):
+        self.arquivo = open(self.name+'.mass','wb')
+        self.write_units()
+        self.write_defaults()
+        self.write_inertia()
+        self.arquivo.close()
+    
+    def write_units(self):
+        self.arquivo.write('Lunit = %f m\n' %(self.Lunit))
+        self.arquivo.write('Munit = %f kg\n' %(self.Munit))
+        self.arquivo.write('Tunit = %f s\n' %(self.Tunit))
+        self.arquivo.write('#'+79*'-'+'\n')
+        
+    def write_defaults(self):
+        self.arquivo.write('g = %f\n' %(self.g))
+        self.arquivo.write('rho = %f\n' %(self.rho))
+        self.arquivo.write('#'+79*'-'+'\n')
+        
+    def write_inertia(self):
+        """
+        Escreve os dados de inercia do avião.
+        
+        inertia = [mass,xCG,yCG,zCG,Ixx,Iyy,Izz,Ixy,Ixz,Iyz]
+        """
+        mass,xCG,yCG,zCG,Ixx,Iyy,Izz,Ixy,Ixz,Iyz = self.inertia
+        self.arquivo.write('%f %f %f %f %f %f %f %f %f %f\n' %(mass,xCG,yCG,zCG,
+                                                               Ixx,Iyy,Izz,
+                                                               Ixy,Ixz,Iyz))
+    
 if __name__ == '__main__':
     header = [0.0,1,0,0.0,0.8,0.35,2.2,0.3,0.0,0.5]
     asas = {'Asa_frontal': [[8, 1.0, 12, -2.0], 0.0, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 0.0, [[[-0.91999999999999993, 0.0, 0.083577871373829077, 0.5, 5.0], 'Perfis/S1223 MOD2015.dat', 0.99259071560308809], [[-0.067942265947765423, 1.0154428656544325, 0.131019448207603, 0.25, 2.0], 'Perfis/S1223 MOD2015.dat', 1.0978393244087321]]], 

@@ -17,6 +17,11 @@ except ImportError:
     print("ERRO ao importar para 'Apoio'\n")
     raise
 
+def issueCmd(ps,cmd,echo=False):
+        ps.stdin.write(cmd+'\n')
+        if echo:
+            print cmd
+
 def baricentro(p1,p2,p3):
     """
     Calculo do baricentro de um triangulo.
