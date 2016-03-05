@@ -9,7 +9,6 @@ print("\nCarregando modulos de 'Construtor'...")
 
 try:
     import numpy as np
-    import sympy as sym
     print("Modulos de 'Construtor' foram carregados com sucesso!")
 except ImportError:
     print("ERRO ao importar para 'Construtor'\n")
@@ -32,29 +31,35 @@ class Construtor2016(object):
     hangaragem em um cone de 2.5m de diâmetro e 0.75m de altura.
     
     As coordenadas estão dispostas no padrão do software Athena Vortex Lattice.
+    Por simplificaçao inicial de projeto, a asa é retangular, não possui 
+    enflexamento nem diedro.    
+    
     
     INPUTS:
     ------
-    * ang_clear: angulo de folga para que a ponta da asa não toque o chão
     * dz_asas: Altura entre as asas
     * asaf: Asa frontal
     * asat: Asa traseira
-    * cr: Corda raiz
-    * ct: Corda ponta
+    * c: Corda
     * ang: Angulo de incidencia
-    * enflex: Enflexamento do bordo de ataque
     * epsilon: Angulo de torcao
     """
     
     d_cone = 2.5 # Diâmetro do cone
     h_cone = 0.75 # Altura do cone
-    x_frente = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
-    z_min = 0.04 # Altura do ponto mais baixo da aeronave 
     m_motor = 0.731 # Peso de motor e hélice
-    pos_motor = np.array([x_frente+0.063, 0.0, 0.198])
+    z_motor = 0.2 #np.array([x_frente+0.063, 0.0, 0.198])
     k_asa = [0.41716, 0.5] # Constantes para o calculo da densidade da asa 
+    
+    # Parametros gerométricos
+    x_min = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
+    z_min = 0.04 # Altura do ponto mais baixo da aeronave    
+    
+    #Carga    
     m_carga = 12 # Carga projetada em 2015
     ro_carga = 8.8e3 #Densidade do bronze
+    
+    # Propriedades do ar
     vel_som = 340.0
     mi_ar = 1.962e-5
     ro_ar = 1.086
@@ -63,33 +68,33 @@ class Construtor2016(object):
     #Parametros de discretizaçao das asas
     Nchord = 12
     Cspace = 1.0
-    Nspan = 25
+    Nspan = 24
     Sspace = -2.0
     
-    def __init__(self,name,ang_clear,dz_asas, vel, 
-                 cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                 perfilr_asaf, perfilp_asaf,
-                 cr_asat,ang_asat,perfilr_asat, perfilp_asat):    
+    def __init__(self,name,dz_asas, vel, 
+                 x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat):    
         # Parametros gerais iteráveis
         self.name = name
-        self.ang_clear = ang_clear
         self.dz_asas = dz_asas 
         self.vel = vel
         
-        # Parametros de asa frontal        
-        self.cr_asaf = cr_asaf
-        self.ct_asaf = ct_asaf
+        #Motor
+        self.pos_motor = np.array([x_ba_asaf+0.063, 0.0, 0.198])
+        
+        # Parametros de asa frontal 
+        self.x_ba_asaf = x_ba_asaf
+        self.c_asaf = c_asaf
         self.ang_asaf = ang_asaf
-        self.enflex_asaf = enflex_asaf
         self.epsilon_asaf = epsilon_asaf
         self.perfilr_asaf = str(perfilr_asaf)
         self.perfilp_asaf = str(perfilp_asaf)
         
         #Parametros de asa traseira
-        self.cr_asat = cr_asat
-        self.ct_asat = ct_asaf 
+        self.x_bf_asat = x_bf_asat
+        self.c_asat = c_asat
         self.ang_asat = ang_asat
-        self.epsilon_asat = ang_asaf+epsilon_asaf-ang_asat
+        self.epsilon_asat = epsilon_asat
         self.perfilr_asat = str(perfilr_asat)
         self.perfilp_asat = str(perfilp_asat)        
         
@@ -144,10 +149,10 @@ class Construtor2016(object):
         """
         Geometria da asa frontal
         """
-        cr = self.cr_asaf
-        ct = self.ct_asaf
+        if self.x_ba_asaf < self.x_min:
+            raise ValueError("A asa frontal foi colocada muito a frente")
+        corda = self.c_asaf
         iw = self.ang_asaf
-        enflex = self.enflex_asaf
         epsilon = self.epsilon_asaf
         
         def pos_cr():
@@ -156,11 +161,10 @@ class Construtor2016(object):
             da corda raiz
             """
             y = 0.0
-            x_ba = self.x_frente
-            x_bf = x_ba+cr
+            x_ba = self.x_ba_asaf
+            x_bf = x_ba+corda*np.cos(iw*np.pi/180)
             z_bf = self.z_min            
-            z_ba = z_bf+cr*np.sin(iw*np.pi/180)
-            
+            z_ba = z_bf+corda*np.sin(iw*np.pi/180)
             ang_cr = iw
             
             return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf]), ang_cr
@@ -171,8 +175,8 @@ class Construtor2016(object):
             da corda da ponta
             """
             z0 = self.h_cone
-            c = self.d_cone/(2.*self.h_cone)
-            z_ba = 2.5*np.tan(self.ang_clear*np.pi/180)
+            c = self.d_cone/(2.*z0)
+            z_ba = pos_ba_cr[2]
             ang_ct = iw+epsilon            
             
             def calc(string):
@@ -181,36 +185,25 @@ class Construtor2016(object):
                 
                 STRING:
                 ------
-                * 'ba': Enflexamento em relação ao bordo de ataque
-                * 'bf': Enflexamento em relação ao bordo de fuga
+                * 'ba': Em relação ao bordo de ataque
+                * 'bf': Em relação ao bordo de fuga
                 """
-                z_bf = z_ba - np.tan(ang_ct*np.pi/180)*ct
-                Y = sym.Symbol('Y')
                 R = c*(z0-z_ba)
                 if string == 'ba':
-                    x = lambda y: y*np.tan(enflex*np.pi/180)+self.x_frente
-                    Y = sym.solvers.solve(x(Y)**2+Y**2-R**2, Y)
-                    y = float(max(Y))
-                    x_ba = x(y)
-                    x_bf = x_ba+ct
-                    
+                    y = np.sqrt(R**2-pos_ba_cr[0]**2) #float(max(Y))
                 elif string == 'bf':
-                    x = lambda y: y*np.tan(enflex*np.pi/180)+self.x_frente+ct
-                    Y = sym.solvers.solve(x(Y)**2+Y**2-R**2, Y)           
-                    y = float(max(Y))
-                    x_bf = x(y)
-                    x_ba = x_bf-ct
+                    y = np.sqrt(R**2-pos_bf_cr[0]**2)
+                return y
                 
-                return x_ba, x_bf, y, z_bf
-                
-            x_ba, x_bf, y , z_bf = calc('ba')
+            y = calc('ba')
             
             # Se o valor de y para o ponto do bordo de fuga estiver fora do cone
             # a função calc é refeita em função do bordo de fuga.
-            if y > max(self.cone(x_bf,z_ba)):
-                x_ba, x_bf, y, z_bf = calc('bf')    
-            
-            return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf]), ang_ct
+            if y > max(self.cone(pos_bf_cr[0],z_ba)):
+                y = calc('bf')    
+                
+            return np.array([pos_ba_cr[0],y,pos_ba_cr[2]]),\
+                   np.array([pos_bf_cr[0],y,pos_bf_cr[2]]), ang_ct
             
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
@@ -233,31 +226,66 @@ class Construtor2016(object):
         """
         Geometria da asa traseira
         """
-        cr = self.cr_asat
+        corda = self.c_asat
         iw = self.ang_asat
+        epsilon = self.epsilon_asat        
         
         def pos_cr():
             """
             Retorna o ponto do bordo de ataque e a incidencia
             da corda raiz
             """
-            r_cone = 0.5*self.d_cone
-            h_cone = self.h_cone
             y = 0.0
             z_ba = self.pos_ba_cr_asaf[2]+self.dz_asas
-            z_bf = z_ba - cr*np.sin(iw*np.pi/180)
-            x_bf = -z_ba*r_cone/h_cone + r_cone
-            x_ba = x_bf-cr
+            z_bf = z_ba - corda*np.sin(iw*np.pi/180)
+            x_bf = self.x_bf_asat
+            x_ba = x_bf-corda*np.cos(iw*np.pi/180)
             ang_cr = iw
+            
+            x_max = 0.5*self.d_cone*(1 - z_ba/self.h_cone)
+            
+            if self.x_bf_asat > x_max:
+                raise ValueError("A asa traseira foi colocada muito atras")
             
             return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf]), ang_cr
             
         def pos_ct():
             """
             Retorna o ponto do bordo de ataque e a incidencia
-            da corda da ponta. Coincidente com a asa frontal.
+            da corda da ponta
             """
-            return self.pos_ba_ct_asaf, self.pos_bf_ct_asaf, self.ang_ct_asaf
+            z0 = self.h_cone
+            c = self.d_cone/(2.*z0)
+            z_ba = pos_ba_cr[2]
+            ang_ct = iw+epsilon            
+            
+            def calc(string):
+                """
+                Calculo das posições (x,y)
+                
+                STRING:
+                ------
+                * 'ba': Em relação ao bordo de ataque
+                * 'bf': Em relação ao bordo de fuga
+                """
+                R = c*(z0-z_ba)
+                if string == 'ba':
+                    y = np.sqrt(R**2-pos_ba_cr[0]**2) #float(max(Y))
+
+                elif string == 'bf':
+                    y = np.sqrt(R**2-pos_bf_cr[0]**2)
+                
+                return y
+                
+            y = calc('bf')
+            
+            # Se o valor de y para o ponto do bordo de fuga estiver fora do cone
+            # a função calc é refeita em função do bordo de fuga.
+            if y > max(self.cone(pos_ba_cr[0],z_ba)):
+                y = calc('ba')    
+            
+            return np.array([pos_ba_cr[0],y,pos_ba_cr[2]]),\
+                   np.array([pos_bf_cr[0],y,pos_bf_cr[2]]), ang_ct
         
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
@@ -381,7 +409,7 @@ class Construtor2016(object):
         iYsym = iZsym = 0
         Zsym = 0.0
         Sref = self.S_asaf+self.S_asat
-        Cref = self.cr_asaf
+        Cref = self.c_asaf
         Bref = self.bw_asaf
         Xref,Yref,Zref = self.pos_cg
         header = [mach,iYsym,iZsym,Zsym,Sref,Cref,Bref,Xref,Yref,Zref]
@@ -397,48 +425,60 @@ class Construtor2016(object):
         
         def CLAF_asaf(string):
             if string == 'raiz':
-                corda = self.cr_asaf
                 aerofolio = self.perfilr_asaf 
             elif string == 'ponta':
-                corda = self.ct_asaf 
                 aerofolio = self.perfilp_asaf 
+            corda = self.c_asaf
             Re = self.ro_ar*corda*self.vel/self.mi_ar
             dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
             
         def CLAF_asat(string):
             if string == 'raiz':
-                corda = self.cr_asat
                 aerofolio = self.perfilr_asat 
             elif string == 'ponta':
-                corda = self.ct_asat 
                 aerofolio = self.perfilp_asat 
+            corda = self.c_asat
             Re = self.ro_ar*corda*self.vel/self.mi_ar
             dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
             return dcl*180/(2*np.pi**2)
         
-            
-        CLAF_raiz_asaf = CLAF_asaf('raiz')
-        CLAF_raiz_asat = CLAF_asat('raiz')
-        CLAF_ponta_asaf = CLAF_asaf('ponta')
-        CLAF_ponta_asat = CLAF_asat('ponta')
+        if self.perfilr_asaf == 'x':
+            CLAF_raiz_asaf = 1.0
+        else:
+            CLAF_raiz_asaf = CLAF_asaf('raiz')
         
+        if self.perfilr_asat == 'x':
+            CLAF_raiz_asat = 1.0
+        else:
+            CLAF_raiz_asat = CLAF_asat('raiz')
+            
+        if self.perfilp_asaf == 'x':
+            CLAF_ponta_asaf = 1.0
+        else:
+            CLAF_ponta_asaf = CLAF_asaf('ponta')
+            
+        if self.perfilp_asat == 'x':
+            CLAF_ponta_asat = 1.0
+        else:
+            CLAF_ponta_asat = CLAF_asat('ponta')
+
         def COORD(string):
             if string == 'raiz_asaf':
                 Xle,Yle,Zle = self.pos_ba_cr_asaf
-                Chord = self.cr_asaf
+                Chord = self.c_asaf
                 Ainc = self.ang_cr_asaf
             elif string == 'raiz_asat':
                 Xle,Yle,Zle = self.pos_ba_cr_asat
-                Chord = self.cr_asat
+                Chord = self.c_asat
                 Ainc = self.ang_cr_asat
             elif string == 'ponta_asaf':
                 Xle,Yle,Zle = self.pos_ba_ct_asaf
-                Chord = self.ct_asaf
+                Chord = self.c_asaf
                 Ainc = self.ang_ct_asaf
             elif string == 'ponta_asat':
                 Xle,Yle,Zle = self.pos_ba_ct_asat
-                Chord = self.ct_asat
+                Chord = self.c_asat
                 Ainc = self.ang_ct_asat
             return [Xle,Yle,Zle,Chord,Ainc,0,0]
             

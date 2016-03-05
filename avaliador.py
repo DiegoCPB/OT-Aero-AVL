@@ -9,6 +9,7 @@ try:
     import numpy as np
     import matplotlib.pyplot as plt
     import subprocess as sp
+    import os.path
     print("Modulos de 'Avaliador' foram carregados com sucesso!")
 except ImportError:
     print("ERRO ao importar para 'Avaliador'\n")
@@ -30,14 +31,15 @@ class Avaliador2016(con.Construtor2016):
     """
     trim = 3.0
     
-    def __init__(self,name,ang_clear,dz_asas, vel, 
-                 cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                 perfilr_asaf, perfilp_asaf,
-                 cr_asat,ang_asat,perfilr_asat, perfilp_asat):             
-        con.Construtor2016.__init__(self,name,ang_clear,dz_asas, vel, 
-                                    cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                                    perfilr_asaf, perfilp_asaf,
-                                    cr_asat,ang_asat,perfilr_asat, perfilp_asat)  
+    def __init__(self,name,dz_asas, vel, 
+                 x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat, p):             
+        con.Construtor2016.__init__(self,name,dz_asas, vel, 
+                                    x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                                    x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat)  
+        if p:
+            self.plot()
+        
         self.ps = sp.Popen(['avl.exe'],stdin=sp.PIPE,stdout=None,stderr=None)
         self.aerodinamica(self.name,self.vel,self.trim)
                                     
@@ -61,6 +63,12 @@ class Avaliador2016(con.Construtor2016):
         issueCmd(ps,'')
         issueCmd(ps,'x')
         issueCmd(ps,'st')
+        issueCmd(ps,'Runs/%s.st' %(name))
+        if os.path.isfile('Runs/%s.st' %(name)):
+            issueCmd(ps,'O')
+        issueCmd(ps,'')
+        issueCmd(ps,'quit')
+        
         
     def plot(self):
         """
@@ -103,30 +111,25 @@ class Avaliador2016(con.Construtor2016):
         
 if __name__ == '__main__':
     name = 'A2016'
-    ang_clear = 4.0
-    dz_asas = 0.4
+    dz_asas = 0.1
     vel = 15
-    perfilr_asaf = 'S1223 MOD2015'
-    perfilp_asaf = 'MIN ponta2016'
-    perfilr_asat = 'E423'
-    perfilp_asat = 'MIN ponta2016'
-    cr_asaf = 0.5
-    ct_asaf = 0.25
+    
+    #Asa frontal
+    x_ba_asaf = -0.5
+    c_asaf = 0.35
     ang_asaf = 5.0
-    enflex_asaf = 37.0
-    epsilon_asaf = -3.0
-    cr_asat = 0.3
+    epsilon_asaf = 0.0
+    perfilr_asaf = 'E423'
+    perfilp_asaf = 'E423'#'MIN ponta2016'
+    
+    # Asa traseira
+    x_bf_asat = 0.8
+    c_asat = 0.35
     ang_asat = 3.0
+    epsilon_asat = 0.0
+    perfilr_asat = 'S1223 MOD2015'
+    perfilp_asat = 'S1223 MOD2015'#'MIN ponta2016'
     
-    # Avião possível
-    # ['A2016',5,0.35,15,
-    #  0.5,0.25,5.0,35.0,-3.0,
-    #  'S1223 MOD2015','MIN ponta2016',
-    #  0.3,2.0,'E423','MIN ponta2016']
-    
-    aviao = Avaliador2016(name,ang_clear,dz_asas, vel, 
-                          cr_asaf,ct_asaf,ang_asaf,enflex_asaf,epsilon_asaf,
-                          perfilr_asaf, perfilp_asaf,
-                          cr_asat,ang_asat,perfilr_asat, perfilp_asat)
-                           
-    aviao.plot()
+    aviao = Avaliador2016(name,dz_asas, vel, 
+                          x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                          x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat, True)
