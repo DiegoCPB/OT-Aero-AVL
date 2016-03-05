@@ -66,21 +66,26 @@ class Construtor2016(object):
     g = 9.8
 
     #Parametros de discretizaçao das asas
-    Nchord = 12
+    Nchord = 8
     Cspace = 1.0
-    Nspan = 24
+    Nspan = 16
     Sspace = -2.0
     
-    def __init__(self,name,dz_asas, vel, 
+    def __init__(self,name,dz_asas, vel, x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
-                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat):    
+                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,p):    
         # Parametros gerais iteráveis
         self.name = name
         self.dz_asas = dz_asas 
         self.vel = vel
+        self.p = p
         
         #Motor
-        self.pos_motor = np.array([x_ba_asaf+0.063, 0.0, 0.198])
+        if x_motor > x_ba_asaf+0.063:
+            raise ValueError("O motor colide com a asa frontal")
+        elif x_motor < self.x_min+0.063:
+            raise ValueError("O motor foi colocado muito a frente")
+        self.pos_motor = np.array([x_motor, 0.0, 0.198])
         
         # Parametros de asa frontal 
         self.x_ba_asaf = x_ba_asaf
@@ -408,7 +413,7 @@ class Construtor2016(object):
         mach = self.vel/self.vel_som
         iYsym = iZsym = 0
         Zsym = 0.0
-        Sref = self.S_asaf+self.S_asat
+        Sref = self.S_asaf
         Cref = self.c_asaf
         Bref = self.bw_asaf
         Xref,Yref,Zref = self.pos_cg
@@ -430,7 +435,7 @@ class Construtor2016(object):
                 aerofolio = self.perfilp_asaf 
             corda = self.c_asaf
             Re = self.ro_ar*corda*self.vel/self.mi_ar
-            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
+            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach,self.p)['dCl'][0]
             return dcl*180/(2*np.pi**2)
             
         def CLAF_asat(string):
@@ -440,7 +445,7 @@ class Construtor2016(object):
                 aerofolio = self.perfilp_asat 
             corda = self.c_asat
             Re = self.ro_ar*corda*self.vel/self.mi_ar
-            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach)['dCl'][0]
+            dcl = perfil.Analise(aerofolio).ajustelinear(Re,mach,self.p)['dCl'][0]
             return dcl*180/(2*np.pi**2)
         
         if self.perfilr_asaf == 'x':
@@ -495,6 +500,6 @@ class Construtor2016(object):
                             [COORD_ponta_asat,AFILE_ponta_asat,CLAF_ponta_asat]]  
         asa_traseira = [DISC, YDUPLICATE, ANGLE, SECTION_traseira]
         
-        asas = {'Frontal':asa_frontal,'Traseira':asa_traseira}        
+        asas = {'Asa Frontal':asa_frontal,'Asa Traseira':asa_traseira}        
         
         return header, asas

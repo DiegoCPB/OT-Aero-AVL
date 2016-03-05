@@ -44,8 +44,8 @@ class Input_geometry(object):
         Xref, Yref, Zref = self.header
         
         self.arquivo.write('%s\n' %(name))
-        self.arquivo.write('%.1f\n' %(mach))
-        self.arquivo.write('%d %d %.1f\n' %(iYsym, iZsym, Zsym))
+        self.arquivo.write('%f\n' %(mach))
+        self.arquivo.write('%d %d %f\n' %(iYsym, iZsym, Zsym))
         self.arquivo.write('%f %f %f\n' %(Sref, Cref, Bref))
         self.arquivo.write('%f %f %f\n' %(Xref, Yref, Zref))
     

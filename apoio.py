@@ -51,7 +51,7 @@ def inercia_ponto(p,p_ref,M):
     
     return J
 
-def inercia_tri(p1,p2,p3,p_ref,ro):
+def inercia_tri(p1,p2,p3,p_ref,rho):
     """
     Cálculo de inércia de um triângulo em função de um ponto de referência
     
@@ -85,7 +85,7 @@ def inercia_tri(p1,p2,p3,p_ref,ro):
     J[2,2] += (X**2 + Y**2)*0.5*a
     
     # Transformação de área para massa
-    J *= ro
+    J *= rho
     
     return J
     

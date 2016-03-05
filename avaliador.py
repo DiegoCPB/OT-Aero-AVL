@@ -16,7 +16,7 @@ except ImportError:
     raise
 
 import construtor as con
-from apoio import issueCmd
+from apoio import issueCmd, executarNaPasta
 
 """
 Esse arquivo define os avaliadores primários, ou seja,
@@ -31,12 +31,12 @@ class Avaliador2016(con.Construtor2016):
     """
     trim = 3.0
     
-    def __init__(self,name,dz_asas, vel, 
+    def __init__(self,name,dz_asas, vel, x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
                  x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat, p):             
-        con.Construtor2016.__init__(self,name,dz_asas, vel, 
+        con.Construtor2016.__init__(self,name,dz_asas, vel, x_motor,
                                     x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
-                                    x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat)  
+                                    x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,p)  
         if p:
             self.plot()
         
@@ -67,9 +67,8 @@ class Avaliador2016(con.Construtor2016):
         if os.path.isfile('Runs/%s.st' %(name)):
             issueCmd(ps,'O')
         issueCmd(ps,'')
-        issueCmd(ps,'quit')
         
-        
+    @executarNaPasta('Graficos/Geometria')
     def plot(self):
         """
         Função de debug pra verificar em um gráfico 3d se os pontos foram
@@ -88,6 +87,7 @@ class Avaliador2016(con.Construtor2016):
         ax.set_xlim3d([-1.25,1.25])
         ax.set_ylim3d([-1.25,1.25])
         ax.set_zlim3d([-1.25,1.25])
+        ax.azim = -135
         
         cg = self.pos_cg
         ax.plot([cg[0]],[cg[1]],[cg[2]],'ro', label='CG')        
@@ -107,29 +107,35 @@ class Avaliador2016(con.Construtor2016):
             ax.plot(x,y,z)
         
         plt.legend(loc='best')
-        plt.show()
+        plt.savefig("geometria_%s.png" %(self.name), bbox_inches='tight', dpi=200)
         
 if __name__ == '__main__':
+    #Parametros gerais    
     name = 'A2016'
-    dz_asas = 0.1
+    dz_asas = 0.3
     vel = 15
+    x_motor = -0.8
     
     #Asa frontal
     x_ba_asaf = -0.5
     c_asaf = 0.35
-    ang_asaf = 5.0
+    ang_asaf = 3.0
     epsilon_asaf = 0.0
-    perfilr_asaf = 'E423'
-    perfilp_asaf = 'E423'#'MIN ponta2016'
+    perfilr_asaf = 'S1223 MOD2015'
+    perfilp_asaf = 'S1223 MOD2015'
     
     # Asa traseira
-    x_bf_asat = 0.8
-    c_asat = 0.35
+    x_bf_asat = 0.5
+    c_asat = 0.2
     ang_asat = 3.0
     epsilon_asat = 0.0
-    perfilr_asat = 'S1223 MOD2015'
-    perfilp_asat = 'S1223 MOD2015'#'MIN ponta2016'
+    perfilr_asat = 'x'
+    perfilp_asat = 'x'
     
-    aviao = Avaliador2016(name,dz_asas, vel, 
+    #Plotar gráficos
+    plot = True
+    
+    aviao = Avaliador2016(name,dz_asas, vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
-                          x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat, True)
+                          x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
+                          plot)
