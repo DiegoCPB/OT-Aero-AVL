@@ -17,7 +17,7 @@ except ImportError:
     print("ERRO ao importar para 'Apoio'\n")
     raise
 
-def issueCmd(ps,cmd,echo=False):
+def issueCmd(ps,cmd,echo=True):
         ps.stdin.write(cmd+'\n')
         if echo:
             print cmd

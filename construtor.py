@@ -50,13 +50,14 @@ class Construtor2016(object):
     m_motor = 0.731 # Peso de motor e hélice
     z_motor = 0.2 #np.array([x_frente+0.063, 0.0, 0.198])
     k_asa = [0.41716, 0.5] # Constantes para o calculo da densidade da asa 
+    ro_estabilizador = 0.9921 #Densidade do EV
     
     # Parametros gerométricos
     x_min = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
     z_min = 0.04 # Altura do ponto mais baixo da aeronave    
     
     #Carga    
-    m_carga = 12 # Carga projetada em 2015
+    m_carga = 15 # Carga projetada em 2015
     ro_carga = 8.8e3 #Densidade do bronze
     
     # Propriedades do ar
@@ -73,7 +74,8 @@ class Construtor2016(object):
     
     def __init__(self,name,dz_asas, vel, x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
-                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,p):    
+                 x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
+                 c_ev,perfil_ev,p):    
         # Parametros gerais iteráveis
         self.name = name
         self.dz_asas = dz_asas 
@@ -101,7 +103,11 @@ class Construtor2016(object):
         self.ang_asat = ang_asat
         self.epsilon_asat = epsilon_asat
         self.perfilr_asat = str(perfilr_asat)
-        self.perfilp_asat = str(perfilp_asat)        
+        self.perfilp_asat = str(perfilp_asat)       
+        
+        # Estabilizador Vertical
+        self.c_ev = c_ev
+        self.perfil_ev = perfil_ev
         
         #Calculos para a asa frontal
         self.pos_ba_cr_asaf, self.pos_bf_cr_asaf, self.ang_cr_asaf,\
@@ -112,6 +118,11 @@ class Construtor2016(object):
         self.pos_ba_cr_asat, self.pos_bf_cr_asat, self.ang_cr_asat,\
         self.pos_ba_ct_asat, self.pos_bf_ct_asat, self.ang_ct_asat,\
         self.S_asat, self.bw_asat, self.AR_asat = self.asa_traseira()
+        
+        #Calculos para o EV
+        self.pos_ba_cr_ev, self.pos_bf_cr_ev,\
+        self.pos_ba_ct_ev, self.pos_bf_ct_ev,\
+        self.S_ev, self.b_ev, self.AR_ev = self.ev()
         
         #Posição do CG levando em conta pesos do motor e asas
         self.pos_cg, self.m_vazio = self.cg()
@@ -213,7 +224,7 @@ class Construtor2016(object):
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
             S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
-            return np.linalg.norm(S1+S2)
+            return 2*np.linalg.norm(S1+S2)
             
         def AR():
             bw = 2*pos_ba_ct[1]
@@ -295,7 +306,7 @@ class Construtor2016(object):
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
             S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
-            return np.linalg.norm(S1+S2)
+            return 2*np.linalg.norm(S1+S2)
             
         def AR():
             bw = 2*pos_ba_ct[1]
@@ -308,6 +319,53 @@ class Construtor2016(object):
         bw, AR = AR() 
         
         return pos_ba_cr, pos_bf_cr, ang_cr, pos_ba_ct, pos_bf_ct, ang_ct, Sw, bw, AR
+
+    def ev(self):
+        """
+        Geometria do estabilizador vertical
+        """
+        corda = self.c_ev        
+        
+        def pos_cr():
+            """
+            Retorna a posiçao da corda raiz
+            """
+            y = 0.0
+            z_ba = z_bf = self.pos_ba_cr_asat[2]
+            x_ba = self.pos_ba_cr_asat[0]
+            x_bf = x_ba+corda
+            return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf])
+            
+        def pos_ct():
+            """
+            Retorna a posiçao da corda da ponta
+            """
+            y = 0.0
+            x_ba = self.pos_ba_cr_asat[0]
+            x_bf = x_ba+corda
+            
+            r_cone = 0.5*self.d_cone
+            xs = np.array([x_ba,x_bf])
+            z_ba = z_bf =  min((r_cone-xs)*self.h_cone/r_cone)
+                
+            return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf])
+            
+        def Sw():
+            S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
+            S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
+            return np.linalg.norm(S1+S2)
+            
+        def AR():
+            bw = pos_ba_ct[2]-pos_ba_cr[2]
+            return bw, bw**2/Sw        
+        
+        pos_ba_cr, pos_bf_cr = pos_cr()
+        pos_ba_ct, pos_bf_ct = pos_ct()
+        
+        Sw = Sw()
+        bw, AR = AR()
+    
+        return pos_ba_cr, pos_bf_cr, pos_ba_ct, pos_bf_ct, Sw, bw, AR
 
     def formato(self):
         """
@@ -336,6 +394,12 @@ class Construtor2016(object):
                          self.pos_bf_ct_asat,
                          self.pos_bf_cr_asat,
                          self.pos_ba_cr_asat])
+                         
+        ev = np.array([self.pos_ba_cr_ev,
+                       self.pos_ba_ct_ev,
+                       self.pos_bf_ct_ev,
+                       self.pos_bf_cr_ev,
+                       self.pos_ba_cr_ev])
             
         asaf_esp = espelhar(asaf)
         asat_esp = espelhar(asat)
@@ -345,22 +409,25 @@ class Construtor2016(object):
                          
         tri_asaf = []
         tri_asat = []
+        tri_ev = []
         triangulo = lambda asa: [asa[tri[i][0]],asa[tri[i][1]],asa[tri[i][2]]]         
         for i in range(len(tri)):
                 tri_asaf.append(triangulo(asaf))
                 tri_asaf.append(triangulo(asaf_esp))
                 tri_asat.append(triangulo(asat))
                 tri_asat.append(triangulo(asat_esp))
+                tri_ev.append(triangulo(ev))
                          
-        return ro_asaf, ro_asat, np.array(tri_asaf), np.array(tri_asat)
+        return ro_asaf, ro_asat, np.array(tri_asaf), np.array(tri_asat), np.array(tri_ev)
         
     def cg(self):
         """
         Função que retorna a posição estimada do CG do avião.
         """
-        ro_asaf, ro_asat, asaf, asat = self.formato()
+        ro_asaf, ro_asat, asaf, asat, ev = self.formato()
+        ro_ev = self.ro_estabilizador        
         
-        m_asas = ro_asaf*self.S_asaf+ro_asat*self.S_asat
+        m_asas = ro_asaf*self.S_asaf+ro_asat*self.S_asat+ro_ev*self.S_ev
         
         def bar(asa):
             n = len(asa)
@@ -370,7 +437,7 @@ class Construtor2016(object):
                 bar += apoio.baricentro(p1,p2,p3)
             return bar/float(n)
         
-        cg = (ro_asaf*bar(asaf)+ro_asat*bar(asat))/(ro_asaf+ro_asat)
+        cg = (ro_asaf*bar(asaf)+ro_asat*bar(asat)+ro_ev*bar(ev))/(ro_asaf+ro_asat+ro_ev)
         cg = (m_asas*cg+self.m_motor*self.pos_motor)/(m_asas+self.m_motor)  
         p_vazio = m_asas+self.m_motor
         return cg, p_vazio
@@ -379,7 +446,8 @@ class Construtor2016(object):
         """
         Calcula o tensor de inercia da aeronave
         """
-        ro_asaf, ro_asat, asaf, asat = self.formato() 
+        ro_asaf, ro_asat, asaf, asat, ev = self.formato() 
+        ro_ev = self.ro_estabilizador        
         
         def J(asa,ro):
             """
@@ -393,6 +461,7 @@ class Construtor2016(object):
             
         J_asaf = J(asaf,ro_asaf)
         J_asat = J(asat,ro_asat)
+        J_ev = J(ev,ro_ev)
         J_motor = apoio.inercia_ponto(self.pos_motor,self.pos_cg,self.m_motor)
             
         if carga:
@@ -402,7 +471,7 @@ class Construtor2016(object):
             J_carga = apoio.inercia_cubo(self.m_carga,L)
             return J_asaf+J_asat+J_motor+J_carga
         else:
-            return J_asaf+J_asat+J_motor
+            return J_asaf+J_asat+J_ev+J_motor
     
     def input_val(self,Nchord,Cspace,Nspace,Sspace):
         """
@@ -427,6 +496,7 @@ class Construtor2016(object):
         AFILE_ponta_asaf = "\"Perfis\%s.dat\"" %(self.perfilp_asaf)
         AFILE_raiz_asat = "\"Perfis\%s.dat\"" %(self.perfilr_asat)
         AFILE_ponta_asat = "\"Perfis\%s.dat\"" %(self.perfilp_asat)
+        AFILE_ev = "\"Perfis\%s.dat\"" %(self.perfil_ev)
         
         def CLAF_asaf(string):
             if string == 'raiz':
@@ -467,6 +537,8 @@ class Construtor2016(object):
             CLAF_ponta_asat = 1.0
         else:
             CLAF_ponta_asat = CLAF_asat('ponta')
+            
+        CLAF_ev = 1.0
 
         def COORD(string):
             if string == 'raiz_asaf':
@@ -485,12 +557,22 @@ class Construtor2016(object):
                 Xle,Yle,Zle = self.pos_ba_ct_asat
                 Chord = self.c_asat
                 Ainc = self.ang_ct_asat
+            elif string == 'raiz_ev':
+                Xle,Yle,Zle = self.pos_ba_cr_ev
+                Chord = self.c_ev
+                Ainc = 0.0
+            elif string == 'ponta_ev':
+                Xle,Yle,Zle = self.pos_ba_ct_ev
+                Chord = self.c_ev
+                Ainc = 0.0
             return [Xle,Yle,Zle,Chord,Ainc,0,0]
             
         COORD_raiz_asaf = COORD('raiz_asaf')
         COORD_raiz_asat = COORD('raiz_asat')
+        COORD_raiz_ev = COORD('raiz_ev')
         COORD_ponta_asaf = COORD('ponta_asaf')
         COORD_ponta_asat = COORD('ponta_asat')
+        COORD_ponta_ev = COORD('ponta_ev')
         
         SECTION_frontal = [[COORD_raiz_asaf,AFILE_raiz_asaf,CLAF_raiz_asaf], 
                            [COORD_ponta_asaf,AFILE_ponta_asaf,CLAF_ponta_asaf]]        
@@ -500,6 +582,10 @@ class Construtor2016(object):
                             [COORD_ponta_asat,AFILE_ponta_asat,CLAF_ponta_asat]]  
         asa_traseira = [DISC, YDUPLICATE, ANGLE, SECTION_traseira]
         
-        asas = {'Asa Frontal':asa_frontal,'Asa Traseira':asa_traseira}        
+        SECTION_ev = [[COORD_raiz_ev,AFILE_ev,CLAF_ev], 
+                      [COORD_ponta_ev,AFILE_ev,CLAF_ev]]     
+        est_vert = [DISC, YDUPLICATE, ANGLE, SECTION_ev]
+            
+        asas = {'Asa Frontal':asa_frontal,'Asa Traseira':asa_traseira, 'EV':est_vert}        
         
         return header, asas
