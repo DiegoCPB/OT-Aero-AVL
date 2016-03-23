@@ -7,15 +7,17 @@ Created on Sun Feb 08 12:32:47 2015
 print("\nCarregando modulos de 'Avaliador'...")
 try:
     import numpy as np
-    import matplotlib.pyplot as plt
     import subprocess as sp
-    import os.path
+    import os
+    import psutil
+    import time
     print("Modulos de 'Avaliador' foram carregados com sucesso!")
 except ImportError:
     print("ERRO ao importar para 'Avaliador'\n")
     raise
 
 import construtor as con
+import aerodinamica as aero
 from apoio import issueCmd, executarNaPasta
 
 """
@@ -29,10 +31,10 @@ class Avaliador2016(con.Construtor2016):
     """
     Essa classe avalia o indivíduo
     """
-    case_alphas = [0.0,5.0,10.0] #Angulos de ataque de análise
-    number_trim_cases = 2 # Números de caso em trimagem
+    case_alphas = [0.0,3.0,7.0,10.0] #Angulos de ataque de análise
+    number_trim_cases = 1 # Números de caso em condição de trimagem
     
-    def __init__(self,name,dz_asas, vel, x_motor,
+    def __init__(self,name,dz_asas,alfa,vel,x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
                  x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
                  c_ev,perfil_ev,p):
@@ -42,14 +44,33 @@ class Avaliador2016(con.Construtor2016):
                                     c_ev,perfil_ev,p)
         if p:
             self.plot()
-            
+        self.alfa = alfa
         self.CL_cruzeiro = self.CL_cruzeiro()
+        
+        # Execução do AVL 
         self.open_avl()
         self.initialize()
         self.config_case()
         self.execute_flow()
         self.eig_values()
         self.quit_avl()
+        
+        # Espera até que a execução do AVL esteja 
+        # finalizada e o respectivo processo fechado.
+        print('')
+        while True:
+            if psutil.pid_exists(self.ps.pid):
+                print("Executando AVL...")
+                time.sleep(2)
+            else:
+                break
+            
+        # Avaliacao de carga paga máxima
+        args_aero = [self.name,self.alfa,self.case_alphas,self.m_vazio,\
+                     self.S_asaf,self.bw_asaf,self.perfilr_asaf,self.perfilp_asaf,\
+                     self.epsilon_asaf,self.vel,self.p]
+        
+        self.CPaga = aero.aerodinamica(*args_aero)
         
     def CL_cruzeiro(self):
         """
@@ -66,9 +87,12 @@ class Avaliador2016(con.Construtor2016):
         """
         Abre o AVL no python.
         """
-        self.ps = sp.Popen(['avl.exe'],stdin=sp.PIPE,stdout=None,stderr=None)
+        self.ps = sp.Popen(['avl.exe'],stdin=sp.PIPE,stdout=open(os.devnull,'w'))
     
     def quit_avl(self):
+        """
+        Finaliza o processo do AVL para que ele não fique rodando em 2º plano.
+        """
         ps = self.ps
         issueCmd(ps,'quit')
     
@@ -87,7 +111,7 @@ class Avaliador2016(con.Construtor2016):
         
     def config_case(self):
         """
-        Configura cada caso com o angulo de ataque especificado        
+        Configura cada caso com a condicao especificada        
         """
         ps = self.ps
         vel = self.vel
@@ -113,7 +137,6 @@ class Avaliador2016(con.Construtor2016):
     def execute_flow(self):                                                  
         """
         Analise aerodinâmica do avião gerado.
-        Essa funçao executa o programa avl.exe
         """
         ps = self.ps
         var = len(self.case_alphas)
@@ -213,7 +236,8 @@ if __name__ == '__main__':
     #Parametros gerais    
     name = 'A2016'
     dz_asas = 0.2
-    vel = 15
+    alfa = 0.0
+    vel = 15.0
     x_motor = -0.6
     
     #Asa frontal
@@ -235,9 +259,9 @@ if __name__ == '__main__':
     perfil_ev = 'x'
     
     #Plotar gráficos
-    plot = False
+    plot = True
     
-    aviao = Avaliador2016(name,dz_asas, vel, x_motor, 
+    aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
                           x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
                           c_ev,perfil_ev,plot)

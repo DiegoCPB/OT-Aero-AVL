@@ -224,7 +224,7 @@ class Construtor2016(object):
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
             S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
-            return 2*np.linalg.norm(S1+S2)
+            return np.linalg.norm(S1+S2)
             
         def AR():
             bw = 2*pos_ba_ct[1]
@@ -306,7 +306,7 @@ class Construtor2016(object):
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
             S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
-            return 2*np.linalg.norm(S1+S2)
+            return np.linalg.norm(S1+S2)
             
         def AR():
             bw = 2*pos_ba_ct[1]
@@ -353,7 +353,7 @@ class Construtor2016(object):
         def Sw():
             S1 = np.cross(pos_bf_cr-pos_ba_cr,pos_ba_ct-pos_ba_cr)
             S2 = np.cross(pos_ba_ct-pos_bf_ct,pos_bf_cr-pos_bf_ct)
-            return np.linalg.norm(S1+S2)
+            return 0.5*np.linalg.norm(S1+S2)
             
         def AR():
             bw = pos_ba_ct[2]-pos_ba_cr[2]

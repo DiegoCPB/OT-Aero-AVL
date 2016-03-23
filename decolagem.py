@@ -49,7 +49,7 @@ class Analise(object):
     trac_tabela = [40.6949,40.00848,39.32206,36.2822,30.98696,29.61412,27.75098,18.6314]
     v_tabela = [0.0,3.0,6.5,10.0,12.3,15.0,17.9,20.4]
     
-    def __init__(self, motor, helice, Sw, m_a, Cl, Clmax, Cd, p = False):
+    def __init__(self, Sw, m_a, Cl, Clmax, Cd, p = False):
         #Leitura do arquivo de configuração
         self.p = p
         
@@ -87,7 +87,7 @@ class Analise(object):
             
             plt.figure()
             plt.grid('on')
-            plt.title('Curva de tracao %s' %(self.conjunto))
+            plt.title('Curva de tracao %s - %s' %(self.motor,self.helice))
             plt.plot(x, fit_fn(x), label='2015')
 #            plt.plot(x, T(x), label='2013') 
             plt.errorbar(v_tabela,trac_tabela, yerr=2.0, fmt='o')
