@@ -115,7 +115,7 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
     def decolagem():
         CL_decol = funcao_CL(alfa_decol)
         CDi_decol = funcao_CDi(CL_decol)
-        dec = decol.Analise(S_asaf, peso_vazio, 
+        dec = decol.Analise(S_asaf, 1.5*peso_vazio, 
                             CL_decol, CLmax, 2*CDi_decol, p)
         CPaga = dec.c_paga_max()
         vd = dec.vel_decol(CPaga)
@@ -124,7 +124,7 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
             dec.vel_corrida(CPaga)
         
         print("\nCalculando parametros de decolagem para pista de %.1f m" %(dec.c))
-        print("         Area de referencia :          %f" %(S_asaf))        
+        print("         Area de referencia :          %f m^2" %(S_asaf))        
         print("         CL total de corrida :         %f" %(CL_decol))
         print("         CL maximo :                   %f" %(CLmax))
         print("         CDi :                         %f" %(CDi_decol))

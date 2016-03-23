@@ -259,7 +259,7 @@ if __name__ == '__main__':
     perfil_ev = 'x'
     
     #Plotar gráficos
-    plot = True
+    plot = False
     
     aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
