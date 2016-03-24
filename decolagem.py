@@ -39,7 +39,7 @@ class Analise(object):
     """
     #Parametros de pista
     mi = 0.04
-    c = 70.0
+    c = 60.0
     vel_inicial = 0.0
     
     # Parametros de motor

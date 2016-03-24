@@ -12,17 +12,18 @@ try:
     from deap import algorithms, base, creator, tools
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
     import multiprocessing as mtp
     import sys
     import time
+    import os
+    import glob
 #    import networkx
     print("Modulos de 'Evolutionary' foram carregados com sucesso!")
 except ImportError:
     print("ERRO ao importar para 'Evolutionary'\n")
     raise
 
-from apoio import salvarPrint, executarNaPasta, tempoDeExecucao, readConfFile, esconderPrint
+from apoio import salvarPrint, executarNaPasta
 import avaliador
 
 # Lista de variaveis:
@@ -35,32 +36,20 @@ import avaliador
 # Numero de individuos em cada geracao                  mu          INPUT
 # Numero de novos individuos gerados a cada geracao     lamb        INPUT
 # Numero de individuos armazenados no Hall Of Fame      size_hof    INPUT
-      
-
-# Posicao das variaveis na lista:
-# 1- xcg
-# 2- iw
-# 3- Sw
-# 4- bw
-# 5- afilw
-# 6- AReh
-# 7- ARev
-# 8- vvt/vht
-# 9- hccarga
-# 10- largccarga
-# 11- Sep
-
-#Leitura do arquivo de configuração
-config = readConfFile('evolutionary.ini')
 
 # Velocidade de análise
-vel = config.getfloat('Global','vel')
+vel = 20
 
 # Ângulo de ataque de corrida do avião
-alfa = config.getfloat('Global','alfa')
+alfa = 0.0
 
 # Variável para a contagem de individuos
 numero = 1
+
+# Os perfis das asas são constantes durante a iteraçao
+perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
+perfilr_asat = perfilp_asat = 'x'
+perfil_ev = 'x'
 
 
 def pontuacao(individual):
@@ -72,60 +61,74 @@ def pontuacao(individual):
     global numero
     print("\n\n\nAVALIACAO DO INDIVIDUO %i" %(numero))
 
-    xcg,iw,Sw,bw,afilw,\
-    AReh,ARev,vvt_vht,\
-    hccarga,largccarga,Sep = individual
+    dz_asas,x_motor,\
+    x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,\
+    x_bf_asat,c_asat,ang_asat,epsilon_asat,\
+    c_ev = individual
+    
+    name = 'ind%d' %(numero)
     
     try:
         #with esconderPrint():
-        A = avaliador.Avaliador2015(vel, alfa, xcg, 
-                                    iw, Sw, bw, afilw,
-                                    AReh, ARev, vvt_vht,
-                                    hccarga, largccarga,
-                                    p = False, out = False)
+        A = avaliador.Avaliador2016(name,dz_asas,alfa,vel,x_motor, 
+                                    x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                                    x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
+                                    c_ev,perfil_ev, p = False)
         score = A.pontuacao
         print('\nAeronave gerada com sucesso.')
     except Exception, e:
         print('\n%s' %(e))
         print("Erro na avaliacao. Pontuacao zerada.")
         score = 0
-        
+
+    if numero%10 == 0:
+        files = glob.glob('Runs/*')
+        for f in files:
+            os.remove(f)
+            
     numero += 1
     return score, #Retorna tupla
 
 
 class Evolutionary(object):
+    ngen = 50
+    pbmut = 0.5
+    pbcros = 0.5
+    mu = 25
+    lamb = 25
+    #     dz_asas x_motor x_ba_asaf c_asaf ang_asaf epsilon_asaf x_bf_asat c_asat ang_asat epsilon_asat c_ev
+    low = [0.05,  -0.8,   -0.8,     0.25,  0.0,     -3.0,        0.5,      0.25,  -5.0,    -3.0,        0.1]
+    up =  [0.5,    0.0,    0.8,     0.4,   5.0,      0.0,        0.8,      0.4,    5.0,     0.0,        0.2]
+    size_hof = 10
+    
+    bool_limites = True
+    
     def __init__(self):
-        self.ngen = config.getint('init','ngen')
-        self.pbmut = config.getfloat('init','pbmut')
-        self.pbcros = config.getfloat('init','pbcros')
-        self.mu = config.getint('init','mu')
-        self.lamb = config.getint('init','lamb')
-        self.low = json.loads(config.get('init','low'))
-        self.up =  json.loads(config.get('init','up'))
-        self.size_hof = config.getint('init','size_hof')
-        
         # A ordem dos limites eh definida pela posicao das variaveis na lista
         # O hof armazena os melhores individuos dentre todas as iteracoes          
         self.hof = tools.HallOfFame(maxsize=self.size_hof)
+        
+        
 
-    @salvarPrint('Output/melhor_individuo_%s_%s.txt' %(time.strftime("%Y %m %d"), 
-                                                       time.strftime("%H:%M")))        
+    #@salvarPrint('Output/melhor_individuo_%s_%s.txt' %(time.strftime("%Y %m %d"), 
+    #                                                   time.strftime("%H:%M")))        
     def calculo_final(self,individual):
         """
         Refaz o cálculo completo do melhor avião
         """
-        xcg,iw,Sw,bw,afilw,\
-        AReh,ARev,vvt_vht,\
-        hccarga,largccarga,Sep = individual
+        dz_asas,x_motor,\
+        x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,\
+        x_bf_asat,c_asat,ang_asat,epsilon_asat,\
+        c_ev = individual
         
+        name = 'best'
+    
         print("\n\n\nREAVALIACAO DO MELHOR INDIVIDUO")        
         
-        A = avaliador.Avaliador2015(vel, alfa, xcg, 
-                                    iw, Sw, bw, afilw,
-                                    AReh, ARev, vvt_vht, 
-                                    hccarga, largccarga,
-                                    p = True, out = True)
+        A = avaliador.Avaliador2016(name,dz_asas,alfa,vel,x_motor, 
+                                    x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
+                                    x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
+                                    c_ev,perfil_ev, p = True)
                                              
         
     def mutate_VELHO(self, ind):
@@ -170,7 +173,7 @@ class Evolutionary(object):
         Modifica os intervalos de variancia se a media do hof 
         estiver no 25% final ou inicial do intervalo
         """
-        if config.getboolean('limites','variavel') == True:
+        if self.bool_limites == True:
             print('\n\n%s' %(30*'-'))
             print('Intervalos variaveis\n')
             for i in range(len(self.low)):

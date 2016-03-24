@@ -18,6 +18,7 @@ except ImportError:
 
 import construtor as con
 import aerodinamica as aero
+import estatica as est
 from apoio import issueCmd, executarNaPasta
 
 """
@@ -31,8 +32,11 @@ class Avaliador2016(con.Construtor2016):
     """
     Essa classe avalia o indivíduo
     """
+    alfa_trim = 3.0
     case_alphas = [0.0,3.0,7.0,10.0] #Angulos de ataque de análise
     number_trim_cases = 1 # Números de caso em condição de trimagem
+    
+    config_m = [0.05,0.2] #Intervalo de valores aceitável para a margem estática
     
     def __init__(self,name,dz_asas,alfa,vel,x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
@@ -42,8 +46,6 @@ class Avaliador2016(con.Construtor2016):
                                     x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
                                     x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
                                     c_ev,perfil_ev,p)
-        if p:
-            self.plot()
         self.alfa = alfa
         self.CL_cruzeiro = self.CL_cruzeiro()
         
@@ -69,8 +71,18 @@ class Avaliador2016(con.Construtor2016):
         args_aero = [self.name,self.alfa,self.case_alphas,self.m_vazio,\
                      self.S_asaf,self.bw_asaf,self.perfilr_asaf,self.perfilp_asaf,\
                      self.epsilon_asaf,self.vel,self.p]
+        self.CPaga, self.alfa_estol,self.mac = aero.aerodinamica(*args_aero)
         
-        self.CPaga = aero.aerodinamica(*args_aero)
+        # Avaliação da estabilidade estática
+        args_estatica = [self.name,self.alfa_trim,self.alfa_estol,self.vel,\
+                         self.pos_cg,self.config_m,self.mac,self.p]
+        self.Xnp,self.fator_estatica = est.estabilidade_estatica(*args_estatica)
+        
+        # Pontuacao da aeronave
+        self.pontuacao = self.CPaga*self.fator_estatica
+        print("\n Pontuacao final : %f" %(self.pontuacao))
+        
+        if p: self.plot()
         
     def CL_cruzeiro(self):
         """
@@ -206,28 +218,18 @@ class Avaliador2016(con.Construtor2016):
         ax.azim = -135
         
         cg = self.pos_cg
-        ax.plot([cg[0]],[cg[1]],[cg[2]],'ro', label='CG')        
+        xnp = self.Xnp
+        ax.plot([cg[0]],[cg[1]],[cg[2]],'ro', label='CG')   
+        ax.plot([xnp],[cg[1]],[cg[2]],'bo', label='$X_{np}$')
         
-        for i in range(len(asaf)):
-            M = asaf[i]
-            x = np.append(M[:,0],M[0,0])
-            y = np.append(M[:,1],M[0,1])
-            z = np.append(M[:,2],M[0,2])
-            ax.plot(x,y,z)   
-                    
-        for i in range(len(asat)):
-            M = asat[i]
-            x = np.append(M[:,0],M[0,0])
-            y = np.append(M[:,1],M[0,1])
-            z = np.append(M[:,2],M[0,2])
-            ax.plot(x,y,z)
-        
-        for i in range(len(ev)):
-            M = ev[i]
-            x = np.append(M[:,0],M[0,0])
-            y = np.append(M[:,1],M[0,1])
-            z = np.append(M[:,2],M[0,2])
-            ax.plot(x,y,z)
+        objetos = [asaf,asat,ev]
+        for i in objetos:
+            for j in range(len(i)):
+                M = i[j]
+                x = np.append(M[:,0],M[0,0])
+                y = np.append(M[:,1],M[0,1])
+                z = np.append(M[:,2],M[0,2])
+                ax.plot(x,y,z)   
         
         plt.legend(loc='best')
         plt.savefig("geometria_%s.png" %(self.name), bbox_inches='tight', dpi=200)
@@ -237,19 +239,19 @@ if __name__ == '__main__':
     name = 'A2016'
     dz_asas = 0.2
     alfa = 0.0
-    vel = 15.0
+    vel = 18.0
     x_motor = -0.6
     
     #Asa frontal
     x_ba_asaf = -0.4
-    c_asaf = 0.25
+    c_asaf = 0.3
     ang_asaf = 4.0
     epsilon_asaf = 0.0
     perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
     
     # Asa traseira
     x_bf_asat = 0.3
-    c_asat = 0.25
+    c_asat = 0.35
     ang_asat = 4.0
     epsilon_asat = 0.0
     perfilr_asat = perfilp_asat = 'S1223 MOD2015'

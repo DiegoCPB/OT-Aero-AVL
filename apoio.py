@@ -9,6 +9,8 @@ print("\nCarregando modulos de 'Apoio'...")
 
 try:
     import numpy as np
+    import sys
+    from time import clock
     from os import chdir, makedirs, listdir, getcwd
     from os.path import dirname, realpath, isfile, join
     from bisect import bisect_right, bisect_left
@@ -121,6 +123,108 @@ def tri(N):
             tri = np.append(tri,[[i, N-i-1, N-i-2]], axis=0)
     
     return tri[1:] 
+    
+class MyWriter:
+
+    def __init__(self, stdout, filename):
+        self.stdout = stdout
+        self.logfile = file(filename, 'w')
+
+    def write(self, text):
+        self.stdout.write(text)
+        self.logfile.write(text)
+
+    def close(self):
+        self.logfile.close()
+
+def salvarPrint(arquivo):
+    """
+    Salva o print do script e mostra ao mesmo tempo no terminal
+    """
+    def wrapper(func):
+        def nested(*args,**kwargs):
+            if '/' in arquivo:
+                pasta = arquivo.rsplit('/',1)[0]
+                
+                _cwd = getcwd()
+                try:
+                    chdir(pasta)
+                except OSError:
+                    # O makedirs cria diretórios recursivamente
+                    # mkdir('dir1/dir2')    -> ERRO
+                    # makedirs('dir1/dir2') -> OK
+                    makedirs(pasta)
+                    chdir(pasta)
+                chdir(_cwd)
+            
+            writer = MyWriter(sys.stdout, arquivo)
+            _out = sys.stdout            
+            sys.stdout = writer
+            
+            print("          __  __ _                                    ") 
+            print("         |  \/  (_)_ __   ___ _ ____   ____ _         ") 
+            print("         | |\/| | | '_ \ / _ \ '__\ \ / / _` |        ")   
+            print("         | |  | | | | | |  __/ |   \ V / (_| |        ")   
+            print("     _   |_|  |_|_|_| |_|\___|_|    \_/_\__,_|        ")   
+            print("    / \   ___ _ __ ___   __| | ___  ___(_) __ _ _ __  ") 
+            print("   / _ \ / _ \ '__/ _ \ / _` |/ _ \/ __| |/ _` | '_ \ ") 
+            print("  / ___ \  __/ | | (_) | (_| |  __/\__ \ | (_| | | | |") 
+            print(" /_/   \_\___|_|  \___/ \__,_|\___||___/_|\__, |_| |_|") 
+            print("                 _   _ _____ ____     _   |___/       ") 
+            print("                | | | |  ___|  _ \   | |              ") 
+            print("                | | | | |_  | |_) |  | |              ") 
+            print("                | |_| |  _| |  _ < |_| |              ") 
+            print("                 \___/|_|   |_| \_\___/               ") 
+            print('')                                                                  
+            print('       |/////////////////////////////////////|')
+            print('       |                                     |')
+            print('       |  Otimizacao de Projeto Aeronautico  |')            
+            print('       |        SAE Brasil Aerodesign        |')
+            print('       |   Equipe Minerva Aerodesign UFRJ    |')
+            print('       |                                     |')
+            print('       |/////////////////////////////////////|')
+            print('')
+            print('Argumentos de entrada de %s em %s:' %(func, sys.argv[0]))
+            print('')            
+            print('Args: %s%s' %(args,''))
+            print('')
+            print('Kwargs: %s%s' %(kwargs,''))
+            print('') 
+            print('///////////////// COMECO DO ARQUIVO /////////////////')
+           
+            result = func(*args,**kwargs) 
+            sys.stdout = _out
+            return result
+        return nested
+    return wrapper
+
+def tempoDeExecucao(func):
+    """
+    Calcula o tempo de execução da função especificada.
+    """
+    def nested(*args, **kwargs):
+        def mostrador(string, tempo):        
+            h = tempo//3600
+            m = (tempo%3600)//60
+            s = (tempo%3600)%60
+            string_s = ' s'
+            string_m = ' min '
+            string_h = ' h '
+            if h == 0:
+                h = string_h = ''
+            if m == 0:
+                m = string_m = ''
+            print("\n---> Tempo de %s : %s%s%s%s%f%s " %(string,
+                                                         h,string_h,
+                                                         m,string_m,
+                                                         s,string_s))
+        START_EXEC_TIME = clock()
+        result = func(*args, **kwargs) #Função avaliada
+        EXEC_TIME = clock()-START_EXEC_TIME
+        mostrador('execucao',EXEC_TIME)
+        
+        return result
+    return nested
 
 def executarNaPasta(string):
    """
@@ -128,7 +232,7 @@ def executarNaPasta(string):
    """
    def nested(func):
        def wrapper(*args, **kwargs):
-            _cwd = getcwd()
+            _cwd = getcwd().encode('string-escape')
             try:
                 chdir(string)
             except OSError:
@@ -137,7 +241,11 @@ def executarNaPasta(string):
                 # makedirs('dir1/dir2') -> OK
                 makedirs(string)
                 chdir(string)
-            result = func(*args, **kwargs)
+            try:    
+                result = func(*args, **kwargs)
+            except:
+                chdir(_cwd)
+                raise
             chdir(_cwd)
             return result 
        return wrapper

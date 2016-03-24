@@ -39,7 +39,7 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
         Asa_frontal = llt.S_sustentadora(perfil_raiz_asaf, perfil_ponta_asaf, 
                                          alfa_decol, S_asaf, b_asaf, 1.0,
                                          epsilon_asaf, vel, 12, False, p)
-        return Asa_frontal.alfa_estol
+        return Asa_frontal.alfa_estol, Asa_frontal.mac
     
     @apoio.executarNaPasta('Runs')
     def getCL_CDi():
@@ -107,15 +107,16 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
                 plt.legend(loc='best')
                 plt.xlabel('$C_L$')
                 plt.ylabel('$C_{D_i}$')
-                plt.savefig("PolarArrasto.png", bbox_inches='tight', dpi=200)
+                plt.savefig("PolarArrastoInduzido.png", bbox_inches='tight', dpi=200)
         
         if p: grafico()        
         return funcao_CDi
     
     def decolagem():
+        m_a = 1.5*peso_vazio
         CL_decol = funcao_CL(alfa_decol)
         CDi_decol = funcao_CDi(CL_decol)
-        dec = decol.Analise(S_asaf, 1.5*peso_vazio, 
+        dec = decol.Analise(S_asaf, m_a, 
                             CL_decol, CLmax, 2*CDi_decol, p)
         CPaga = dec.c_paga_max()
         vd = dec.vel_decol(CPaga)
@@ -129,16 +130,16 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
         print("         CL maximo :                   %f" %(CLmax))
         print("         CDi :                         %f" %(CDi_decol))
         print("         Carga paga maxima do aviao :  %.3f kg" %(CPaga))
-        print("         Peso maximo de voo :          %.3f kg" %(CPaga+peso_vazio))
+        print("         Peso maximo de voo :          %.3f kg" %(CPaga+m_a))
         print("         Velocidade de rotacao :       %.3f m/s" %(vd))
         return CPaga                
     
-    alfa_estol = alfa_estol()
+    alfa_estol,mac = alfa_estol()
     CL,CDi = getCL_CDi()
     funcao_CL,CLmax = polar_sustentacao()
     funcao_CDi = polar_arrasto()
     CPaga = decolagem()
-    return CPaga
+    return CPaga,alfa_estol,mac
             
             
             
