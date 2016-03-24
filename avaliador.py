@@ -77,10 +77,11 @@ class Avaliador2016(con.Construtor2016):
         args_estatica = [self.name,self.alfa_trim,self.alfa_estol,self.vel,\
                          self.pos_cg,self.config_m,self.mac,self.p]
         self.Xnp,self.fator_estatica = est.estabilidade_estatica(*args_estatica)
-        
+        print("\nXcg : %f" %((self.pos_cg[0]-self.x_ba_asaf)/self.c_asaf))        
+
         # Pontuacao da aeronave
         self.pontuacao = self.CPaga*self.fator_estatica
-        print("\n Pontuacao final : %f" %(self.pontuacao))
+        print("\nPontuacao final : %f" %(self.pontuacao))
         
         if p: self.plot()
         
@@ -235,29 +236,34 @@ class Avaliador2016(con.Construtor2016):
         plt.savefig("geometria_%s.png" %(self.name), bbox_inches='tight', dpi=200)
         
 if __name__ == '__main__':
+
+    #[0.2001161889702444, -0.6525955992563218, -0.23682723841760256, 0.3055346368498382,
+    # 1.1714117851134391, -1.9663939777948105, 0.6177864532788674, 0.2806300363209579,
+    # -4.293249586272323, -1.264893247183676, 0.3508095127809762
+
     #Parametros gerais    
     name = 'A2016'
-    dz_asas = 0.2
+    dz_asas = 0.2001161889702444
     alfa = 0.0
-    vel = 18.0
-    x_motor = -0.6
+    vel = 20.0
+    x_motor = -0.7
     
     #Asa frontal
-    x_ba_asaf = -0.4
-    c_asaf = 0.3
-    ang_asaf = 4.0
-    epsilon_asaf = 0.0
+    x_ba_asaf = -0.23682723841760256
+    c_asaf = 0.3055346368498382
+    ang_asaf = 1.1714117851134391
+    epsilon_asaf = -1.9663939777948105
     perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
     
     # Asa traseira
-    x_bf_asat = 0.3
-    c_asat = 0.35
-    ang_asat = 4.0
-    epsilon_asat = 0.0
-    perfilr_asat = perfilp_asat = 'S1223 MOD2015'
+    x_bf_asat = 0.6177864532788674
+    c_asat = 0.2806300363209579
+    ang_asat = -4.293249586272323
+    epsilon_asat = -1.264893247183676
+    perfilr_asat = perfilp_asat = 'x'
     
     # EV
-    c_ev = 0.1
+    c_ev = 0.3508095127809762
     perfil_ev = 'x'
     
     #Plotar gráficos

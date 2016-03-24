@@ -110,8 +110,8 @@ class Evolutionary(object):
         
         
 
-    #@salvarPrint('Output/melhor_individuo_%s_%s.txt' %(time.strftime("%Y %m %d"), 
-    #                                                   time.strftime("%H:%M")))        
+    @salvarPrint('Output/melhor_individuo_%s_%s.txt' %(time.strftime("%Y %m %d"), 
+                                                       time.strftime("%H:%M")))        
     def calculo_final(self,individual):
         """
         Refaz o cálculo completo do melhor avião
