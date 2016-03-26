@@ -86,11 +86,11 @@ def estabilidade_dinamica(name,p):
             Gera o grafico de root locus para phugoid e short-period.
             """            
             X1 = -phug_csi*phug_omega
-            Y1 = phug_omega*(1-phug_csi)**0.5
+            Y1 = phug_omega*(1-phug_csi**2)**0.5
             X2 = X1
             Y2 = -Y1
             X3 = -short_csi*short_omega
-            Y3 = short_omega*(1-short_csi)**0.5
+            Y3 = short_omega*(1-short_csi**2)**0.5
             X4 = X3
             Y4 = -Y3
             
