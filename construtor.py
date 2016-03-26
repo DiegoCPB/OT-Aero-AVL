@@ -17,6 +17,7 @@ except ImportError:
 import apoio
 import write_input_file as wif
 import perfil
+import geral
 
 """
  Todos os pesos estão em kg. 
@@ -48,24 +49,18 @@ class Construtor2016(object):
     d_cone = 2.5 # Diâmetro do cone
     h_cone = 0.75 # Altura do cone
     m_motor = 0.731 # Peso de motor e hélice
-    z_motor = 0.2 #np.array([x_frente+0.063, 0.0, 0.198])
+    z_motor = 0.2 
     k_asa = [0.41716, 0.5] # Constantes para o calculo da densidade da asa 
     ro_estabilizador = 0.9921 #Densidade do EV
     
     # Parametros gerométricos
     x_min = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
-    z_min = 0.04 # Altura do ponto mais baixo da aeronave    
+    z_min = 0.06 # Altura do ponto mais baixo da aeronave    
     
     #Carga    
     m_carga = 15 # Carga projetada em 2015
     ro_carga = 8.8e3 #Densidade do bronze
     
-    # Propriedades do ar
-    vel_som = 340.0
-    mi_ar = 1.962e-5
-    ro_ar = 1.086
-    g = 9.8
-
     #Parametros de discretizaçao das asas
     Nchord = 8
     Cspace = 1.0
@@ -81,13 +76,20 @@ class Construtor2016(object):
         self.dz_asas = dz_asas 
         self.vel = vel
         self.p = p
+        self.g = geral.gravidade
+        
+        # Ar
+        self.ar = geral.Ar()
+        self.mi_ar = self.ar.mi
+        self.ro_ar = self.ar.rho()
+        self.vel_som = geral.vel_som
         
         #Motor
         if x_motor > x_ba_asaf+0.063:
             raise ValueError("O motor colide com a asa frontal")
         elif x_motor < self.x_min+0.063:
             raise ValueError("O motor foi colocado muito a frente")
-        self.pos_motor = np.array([x_motor, 0.0, 0.198])
+        self.pos_motor = np.array([x_motor, 0.0, self.z_motor])
         
         # Parametros de asa frontal 
         self.x_ba_asaf = x_ba_asaf
@@ -254,6 +256,10 @@ class Construtor2016(object):
             y = 0.0
             z_ba = self.pos_ba_cr_asaf[2]+self.dz_asas
             z_bf = z_ba - corda*np.sin(iw*np.pi/180)
+
+            if min([z_ba,z_bf]) < self.z_min:
+                raise ValueError("A asa traseira foi colocada muito baixa")
+            
             x_bf = self.x_bf_asat
             x_ba = x_bf-corda*np.cos(iw*np.pi/180)
             ang_cr = iw

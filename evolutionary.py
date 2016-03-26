@@ -83,6 +83,7 @@ def pontuacao(individual):
 
     if numero%10 == 0:
         files = glob.glob('Runs/*')
+        time.sleep(2)
         for f in files:
             os.remove(f)
             
@@ -98,10 +99,10 @@ class Evolutionary(object):
     lamb = 25
     #     dz_asas x_motor x_ba_asaf c_asaf ang_asaf epsilon_asaf x_bf_asat c_asat ang_asat epsilon_asat c_ev
     low = [0.05,  -0.8,   -0.8,     0.25,  0.0,     -3.0,        0.5,      0.25,  -5.0,    -3.0,        0.1]
-    up =  [0.5,    0.0,    0.8,     0.4,   5.0,      0.0,        0.8,      0.4,    5.0,     0.0,        0.2]
+    up =  [0.5,    0.0,    0.5,     0.4,   5.0,      0.0,        0.8,      0.4,    5.0,     3.0,        0.2]
     size_hof = 10
     
-    bool_limites = True
+    bool_limites = False
     
     def __init__(self):
         # A ordem dos limites eh definida pela posicao das variaveis na lista
@@ -111,7 +112,7 @@ class Evolutionary(object):
         
 
     @salvarPrint('Output/melhor_individuo_%s_%s.txt' %(time.strftime("%Y %m %d"), 
-                                                       time.strftime("%H:%M")))        
+                                                       time.strftime("%H.%M")))        
     def calculo_final(self,individual):
         """
         Refaz o cálculo completo do melhor avião
@@ -129,6 +130,10 @@ class Evolutionary(object):
                                     x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
                                     x_bf_asat,c_asat,ang_asat,epsilon_asat,perfilr_asat, perfilp_asat,
                                     c_ev,perfil_ev, p = True)
+                                    
+        files = glob.glob('Runs/ind*')
+        for f in files:
+            os.remove(f)
                                              
         
     def mutate_VELHO(self, ind):

@@ -19,6 +19,7 @@ except ImportError:
 import construtor as con
 import aerodinamica as aero
 import estatica as est
+import dinamica as din
 from apoio import issueCmd, executarNaPasta
 
 """
@@ -60,12 +61,16 @@ class Avaliador2016(con.Construtor2016):
         # Espera até que a execução do AVL esteja 
         # finalizada e o respectivo processo fechado.
         print('')
+        inicial = time.clock()
         while True:
             if psutil.pid_exists(self.ps.pid):
                 print("Executando AVL...")
                 time.sleep(2)
             else:
                 break
+            if time.clock()-inicial > 60:
+                self.ps.kill()
+                raise ValueError("O AVL nao convergiu.")
             
         # Avaliacao de carga paga máxima
         args_aero = [self.name,self.alfa,self.case_alphas,self.m_vazio,\
@@ -77,13 +82,23 @@ class Avaliador2016(con.Construtor2016):
         args_estatica = [self.name,self.alfa_trim,self.alfa_estol,self.vel,\
                          self.pos_cg,self.config_m,self.mac,self.p]
         self.Xnp,self.fator_estatica = est.estabilidade_estatica(*args_estatica)
-        print("\nXcg : %f" %((self.pos_cg[0]-self.x_ba_asaf)/self.c_asaf))        
+        print("\nXcg : %f" %((self.pos_cg[0]-self.x_ba_asaf)/self.c_asaf))
+        
+        try:
+            self.fator_dinamica = din.estabilidade_dinamica(self.name,self.p)
+        except ValueError, e:
+            print("\n%s" %(e))
+            self.fator_dinamica = 0.01
+            
+        print('\nFator de aerodinamica : %f' %(self.CPaga))
+        print('Fator de estabilidade estatica : %f' %(self.fator_estatica))
+        print('Fator de estabilidade dinamica : %f' %(self.fator_dinamica))
 
         # Pontuacao da aeronave
-        self.pontuacao = self.CPaga*self.fator_estatica
-        print("\nPontuacao final : %f" %(self.pontuacao))
+        self.pontuacao = self.CPaga*self.fator_estatica*self.fator_dinamica
+        print("Pontuacao final : %f" %(self.pontuacao))
         
-        if p: self.plot()
+        if self.p: self.plot()
         
     def CL_cruzeiro(self):
         """
@@ -267,7 +282,7 @@ if __name__ == '__main__':
     perfil_ev = 'x'
     
     #Plotar gráficos
-    plot = False
+    plot = True
     
     aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,

@@ -71,8 +71,16 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
         print('         Angulo alfa de trimagem :  %.5f graus' %(alfa_trim))
         print('         Cm0 :                      %.5f' %(Cmtot-Cma*alpha))
         print('         Cma :                      %.5f graus^(-1)' %(Cma))        
-        
-        f = np.exp(-abs(alfa_trim-trim_desejado)/10.0)
+
+        max_trim = trim_desejado+2.0
+
+        if alfa_trim > 0.0 and alfa_trim < max_trim:
+            f = 1.0
+        else:
+            if alfa_trim < 0.0:
+                f = np.exp(alfa_trim)
+            else:
+                f = np.exp((max_trim-alfa_trim)/10.0)
         
         if me >= config_m[0] and me <= config_m[1]:
             print('         Os valores sao ACEITAVEIS')
@@ -96,10 +104,12 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
         # Valores negativos de Cl_beta sao considerados estaveis
         if Clb < 0.0:
             print '         Aviao lateralmente ESTAVEL'
-            return 1.0
+            f = 1.0
         else:
             print '         Aviao lateralmente INSTAVEL'
-            return np.exp(1.0-Clb)
+            f = np.exp(-Clb)
+        print('         Fator de pontuacao : %f' %(f))
+        return f
             
     def pontuacao_dir():
         """
@@ -111,10 +121,12 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
         # Valores positivos de Cnb sao considerados estaveis
         if Cnb > 0.0:
             print '         Aviao direcionalmente ESTAVEL'
-            return 1.0
+            f = 1.0
         else:
             print '         Aviao direcionalmente INSTAVEL'
-            return np.exp(Cnb-1.0)
+            f = np.exp(Cnb)
+        print('         Fator de pontuacao : %f' %(f))
+        return f
             
     def pontuacao_spiral():
         """
@@ -126,10 +138,12 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
         # Valores positivos de spiral sao considerados estaveis
         if spiral > 1.0:
             print '         Modo espiral ESTAVEL'
-            return 1.0
+            f = 1.0
         else:
             print '         Modo espiral INSTAVEL'
-            return np.exp((spiral-1.0)/10.0)
+            f = np.exp((spiral-1.0)/10.0)
+        print('         Fator de pontuacao : %f' %(f))
+        return f
             
     def graf_long():
         """
@@ -189,7 +203,6 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
     fator_spiral = pontuacao_spiral()
 
     fator_estatica = fator_long*fator_lat*fator_dir*fator_spiral
-    print('\nFator de estabilidade estatica : %f' %(fator_estatica))
     
     # Plota os graficos
     if p: plot()
