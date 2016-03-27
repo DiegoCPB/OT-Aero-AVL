@@ -339,7 +339,7 @@ class Construtor2016(object):
             y = 0.0
             z_ba = z_bf = self.pos_ba_cr_asat[2]
             x_ba = self.pos_ba_cr_asat[0]
-            x_bf = x_ba+corda
+            x_bf = x_ba+self.c_asat
             return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf])
             
         def pos_ct():

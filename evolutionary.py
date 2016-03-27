@@ -98,8 +98,8 @@ class Evolutionary(object):
     mu = 25
     lamb = 25
     #     dz_asas x_motor x_ba_asaf c_asaf ang_asaf epsilon_asaf x_bf_asat c_asat ang_asat epsilon_asat c_ev
-    low = [0.05,  -0.8,   -0.8,     0.25,  0.0,     -3.0,        0.5,      0.25,  -5.0,    -3.0,        0.1]
-    up =  [0.5,    0.0,    0.5,     0.4,   5.0,      0.0,        0.8,      0.4,    5.0,     3.0,        0.2]
+    low = [0.05,  -0.8,   -0.8,     0.25,  0.0,     -5.0,        0.5,      0.25,  -5.0,    -5.0,        0.1]
+    up =  [0.5,    0.0,    0.5,     0.4,   5.0,      0.0,        0.8,      0.4,    5.0,     5.0,        0.3]
     size_hof = 10
     
     bool_limites = False
