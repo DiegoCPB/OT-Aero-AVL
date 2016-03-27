@@ -189,10 +189,10 @@ def estabilidade_dinamica(name,p):
             '''
             
             print('\nResultados da Estabilidade Dinamica Longitudinal:')
-            print('\n       ----------------Phugoid----------------')
+            print('        ----------------Phugoid----------------')
             print('                Razao de amortecimento : %.5f' %(phug_csi))
             print('                Frequencia de oscilacao : %.5f rad/s' %(phug_omega_amort))
-            print('\n       --------------Short-Period-------------')
+            print('        --------------Short-Period-------------')
             print('                Razao de amortecimento : %.5f' %(short_csi))
             print('                Frequencia de oscilacao : %.5f rad/s' %(short_omega_amort))
                 
