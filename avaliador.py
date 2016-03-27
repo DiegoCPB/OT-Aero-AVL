@@ -71,6 +71,32 @@ class Avaliador2016(con.Construtor2016):
             if time.clock()-inicial > 60:
                 self.ps.kill()
                 raise ValueError("O AVL nao convergiu.")
+                
+        print("\nGeometria da aeronave:")
+        print("         Posicao CG :           %s m" %(self.pos_cg))
+        print("         Xcg :                  %f" %((self.pos_cg[0]-self.x_ba_asaf)/self.c_asaf))
+        print("        ---------- ASA FRONTAL ---------")
+        print("         X do bordo de ataque : %f m" %(self.x_ba_asaf))
+        print("         Z do bordo de ataque : %f m" %(self.z_min))
+        print("         Area :                 %f m^2" %(self.S_asaf))
+        print("         Envergadura :          %f m" %(self.bw_asaf))
+        print("         Corda :                %f m" %(self.c_asaf))
+        print("         Angulo de incidencia : %f graus" %(self.ang_cr_asaf))
+        print("         Angulo de torsao :     %f graus" %(self.epsilon_asaf))
+        print("        --------- ASA TRASEIRA ---------")
+        print("         X do bordo de ataque : %f m" %(self.x_bf_asat-self.c_asat))
+        print("         Z do bordo de ataque : %f m" %(self.z_min+self.dz_asas))
+        print("         Area :                 %f m^2" %(self.S_asat))
+        print("         Envergadura :          %f m" %(self.bw_asat))
+        print("         Corda :                %f m" %(self.c_asat))
+        print("         Angulo de incidencia : %f graus" %(self.ang_cr_asat))
+        print("         Angulo de torsao :     %f graus" %(self.epsilon_asat))
+        print("        -------------- EV --------------")
+        print("         Area :                 %f m^2" %(self.S_ev))
+        print("         Envergadura :          %f m" %(self.b_ev))
+        print("         Corda :                %f m" %(self.c_ev))
+        print("        ------------ MOTOR -------------")
+        print("         Posicao :              %s m" %(self.pos_motor))
             
         # Avaliacao de carga paga máxima
         args_aero = [self.name,self.alfa,self.case_alphas,self.m_vazio,\
@@ -82,7 +108,6 @@ class Avaliador2016(con.Construtor2016):
         args_estatica = [self.name,self.alfa_trim,self.alfa_estol,self.vel,\
                          self.pos_cg,self.config_m,self.mac,self.p]
         self.Xnp,self.fator_estatica = est.estabilidade_estatica(*args_estatica)
-        print("\nXcg : %f" %((self.pos_cg[0]-self.x_ba_asaf)/self.c_asaf))
         
         try:
             self.fator_dinamica = din.estabilidade_dinamica(self.name,self.p)
@@ -252,37 +277,37 @@ class Avaliador2016(con.Construtor2016):
         
 if __name__ == '__main__':
 
-    #[0.2001161889702444, -0.6525955992563218, -0.23682723841760256, 0.3055346368498382,
-    # 1.1714117851134391, -1.9663939777948105, 0.6177864532788674, 0.2806300363209579,
-    # -4.293249586272323, -1.264893247183676, 0.3508095127809762
-
+    #[0.0655481135642505, -0.6169047374302623, -0.19072996243401064, 0.3991774109065558, 
+    # 2.603011485765066, -0.5885822268427869, 0.7139722884775602, 0.2885711556933519, 
+    # 1.1756835144489113, 2.8652532575807257, 0.2815570703482143]
+    
     #Parametros gerais    
     name = 'A2016'
-    dz_asas = 0.2001161889702444
+    dz_asas = 0.0655481135642505
     alfa = 0.0
     vel = 20.0
-    x_motor = -0.7
+    x_motor = -0.6169047374302623
     
     #Asa frontal
-    x_ba_asaf = -0.23682723841760256
-    c_asaf = 0.3055346368498382
-    ang_asaf = 1.1714117851134391
-    epsilon_asaf = -1.9663939777948105
+    x_ba_asaf = -0.19072996243401064
+    c_asaf = 0.3991774109065558
+    ang_asaf = 2.603011485765066
+    epsilon_asaf = -0.5885822268427869
     perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
     
     # Asa traseira
-    x_bf_asat = 0.6177864532788674
-    c_asat = 0.2806300363209579
-    ang_asat = -4.293249586272323
-    epsilon_asat = -1.264893247183676
+    x_bf_asat = 0.7139722884775602
+    c_asat = 0.2885711556933519
+    ang_asat = 1.1756835144489113
+    epsilon_asat = 2.8652532575807257
     perfilr_asat = perfilp_asat = 'NACA 0011'
     
     # EV
-    c_ev = 0.3508095127809762
+    c_ev = 0.2815570703482143
     perfil_ev = 'NACA 0011'
     
     #Plotar gráficos
-    plot = False
+    plot = True
     
     aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
