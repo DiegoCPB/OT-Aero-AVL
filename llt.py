@@ -991,4 +991,4 @@ if __name__ == "__main__":
     Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 19.4, 0.797, 1.997, 0.65,
                           -3.0, 20.0, 25, p = False)
     
-    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans
+    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans,Asa1.mac
