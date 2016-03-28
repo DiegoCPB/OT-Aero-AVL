@@ -48,8 +48,8 @@ numero = 1
 
 # Os perfis das asas são constantes durante a iteraçao
 perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
-perfilr_asat = perfilp_asat = 'x'
-perfil_ev = 'x'
+perfilr_asat = perfilp_asat = 'NACA 0011'
+perfil_ev = 'NACA 0011'
 
 
 def pontuacao(individual):

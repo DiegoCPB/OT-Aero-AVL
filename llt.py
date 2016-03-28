@@ -700,6 +700,7 @@ class S_sustentadora(object):
         mach = self._mach
         ca = self._p_c
         Cm_secao = np.zeros(n)  
+        corda_secao = 0.5*(self._cordas[:-1]+self._cordas[1:])
         
         if self._perfil_raiz.name != self._perfil_ponta.name:
             Re_raiz = self._Re(self._cordas[-1])
@@ -737,7 +738,7 @@ class S_sustentadora(object):
             
                 Cm_secao[i] = (ca[i]-xCp)*(Cl*np.cos(ang)-Cd*np.sin(ang))
         
-        def grafico():
+        def cm_local():
             plt.figure()
             plt.grid('on')
             plt.title(r'Coeficiente de momento local')
@@ -748,9 +749,21 @@ class S_sustentadora(object):
             plt.legend(loc='best')
             plt.savefig("distCm.png", bbox_inches='tight', dpi=200)
             plt.close()
+
+        def momento_torsor_local():
+            plt.figure()
+            plt.grid('on')
+            plt.title(r'Momento torsor local')
+            plt.xlabel(r'Semi-envergadura ($m$)')
+            plt.ylabel(r'$M_t$ ($N$)')
+            plt.plot(y_secao,0.5*self._ar.rho()*self.vel**2*corda_secao*Cm_secao,label=r'$\alpha = %.1f^o$' %(self.alfa))
+            plt.legend(loc='best')
+            plt.savefig("distMt.png", bbox_inches='tight', dpi=200)
+            plt.close()
         
         if self._p:
-            apoio.executarNaPasta(self._pasta_graficos)(grafico)()
+            apoio.executarNaPasta(self._pasta_graficos)(cm_local)()
+            apoio.executarNaPasta(self._pasta_graficos)(momento_torsor_local)()
         
         CM = 2*sum(Cm_secao*area_secao)/self.Sw
         return CM
@@ -941,3 +954,41 @@ class S_sustentadora(object):
         plt.fill_between(y, planta_pos, planta_neg, color='b', alpha=0.3)             
         plt.savefig("geometriaAsa.png", bbox_inches='tight', dpi=200)
         plt.close()
+        
+if __name__ == "__main__":
+#    Geometria da aeronave:
+#         Posicao CG :           [-0.03036109  0.          0.19970691] m
+#         Xcg :                  0.401748
+#        ---------- ASA FRONTAL ---------
+#         X do bordo de ataque : -0.190730 m
+#         Z do bordo de ataque : 0.120000 m
+#         Area :                 0.797030 m^2
+#         Envergadura :          1.996680 m
+#         Corda :                0.399177 m
+#         Angulo de incidencia : 2.603011 graus
+#         Angulo de torsao :     -0.588582 graus
+#        --------- ASA TRASEIRA ---------
+#         X do bordo de ataque : 0.425401 m
+#         Z do bordo de ataque : 0.185548 m
+#         Area :                 0.326136 m^2
+#         Envergadura :          1.130175 m
+#         Corda :                0.288571 m
+#         Angulo de incidencia : 1.175684 graus
+#         Angulo de torsao :     2.865253 graus
+#        -------------- EV --------------
+#         Area :                 0.034810 m^2
+#         Envergadura :          0.122112 m
+#         Corda :                0.281557 m
+#        ------------ MOTOR -------------
+#         Posicao :              [-0.61690474  0.          0.2       ] m    
+
+#    def f(x):
+#        Asa = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 2.6, 0.797, 1.997, x, 0.0, 13.7, 25)
+#        return Asa.CDi
+#        
+#    print fmin(f,0.5,maxfun=30)
+    
+    Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 19.4, 0.797, 1.997, 0.65,
+                          -3.0, 20.0, 25, p = False)
+    
+    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans
