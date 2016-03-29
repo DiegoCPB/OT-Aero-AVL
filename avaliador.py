@@ -303,7 +303,7 @@ if __name__ == '__main__':
     perfilr_asat = perfilp_asat = 'NACA 0011'
     
     # EV
-    c_ev = 0.2815570703482143
+    c_ev = 0.14
     perfil_ev = 'NACA 0011'
     
     #Plotar gráficos

@@ -78,7 +78,7 @@ class Input_geometry(object):
                     self.arquivo.write('%d %.1f %d %.1f\n\n' %(VAL[0],VAL[1],
                                                                    VAL[2],VAL[3]))
                                                          
-                elif i == 1 and SURFACE != 'EV':
+                elif i == 1:
                     self.arquivo.write('YDUPLICATE\n')
                     self.arquivo.write('%.2f\n\n' %(VAL))
                     

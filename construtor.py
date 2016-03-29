@@ -157,11 +157,18 @@ class Construtor2016(object):
         c = self.d_cone/(2*self.h_cone)
         if z > z0:
             raise ValueError("Altura máxima ultrapassada")
-        else:
-            R = c*(z0-z)
-            b1 = np.sqrt(R**2-a**2)
-            b2 = -b1
-            return b1,b2
+        R = c*(z0-z)
+        b1 = np.sqrt(R**2-a**2)
+        b2 = -b1
+        return b1,b2
+
+    def cone2(self,x,y):
+        z0 = self.h_cone
+        c = self.d_cone/(2.*z0)
+        z = -np.sqrt((x**2+y**2)/c)+z0
+        if z < 0.0:
+            raise ValueError("Posicao fora dos limites do cone")
+        return z
     
     def asa_frontal(self):
         """
@@ -336,7 +343,7 @@ class Construtor2016(object):
             """
             Retorna a posiçao da corda raiz
             """
-            y = 0.0
+            y = self.bw_asat/6.0
             z_ba = z_bf = self.pos_ba_cr_asat[2]
             x_ba = self.pos_ba_cr_asat[0]
             x_bf = x_ba+self.c_asat
@@ -346,13 +353,10 @@ class Construtor2016(object):
             """
             Retorna a posiçao da corda da ponta
             """
-            y = 0.0
+            y = 0
             x_ba = self.pos_ba_cr_asat[0]
-            x_bf = x_ba+corda
-            
-            r_cone = 0.5*self.d_cone
-            xs = np.array([x_ba,x_bf])
-            z_ba = z_bf =  min((r_cone-xs)*self.h_cone/r_cone)
+            x_bf = x_ba+corda            
+            z_ba = z_bf =  min(self.cone2(x_ba,y),self.cone2(x_bf,y))
                 
             return np.array([x_ba,y,z_ba]), np.array([x_bf,y,z_bf])
             
@@ -409,6 +413,7 @@ class Construtor2016(object):
             
         asaf_esp = espelhar(asaf)
         asat_esp = espelhar(asat)
+        ev_esp = espelhar(ev)
         
         # Array de triangulação
         tri = np.array([[0,3,1],[1,3,2]]) #Calculado pela função tri() em apoio.py
@@ -423,6 +428,7 @@ class Construtor2016(object):
                 tri_asat.append(triangulo(asat))
                 tri_asat.append(triangulo(asat_esp))
                 tri_ev.append(triangulo(ev))
+                tri_ev.append(triangulo(ev_esp))
                          
         return ro_asaf, ro_asat, np.array(tri_asaf), np.array(tri_asat), np.array(tri_ev)
         
@@ -433,7 +439,7 @@ class Construtor2016(object):
         ro_asaf, ro_asat, asaf, asat, ev = self.formato()
         ro_ev = self.ro_estabilizador        
         
-        m_asas = ro_asaf*self.S_asaf+ro_asat*self.S_asat+ro_ev*self.S_ev
+        m_asas = ro_asaf*self.S_asaf+ro_asat*self.S_asat+2.0*ro_ev*self.S_ev
         
         def bar(asa):
             n = len(asa)
@@ -443,7 +449,7 @@ class Construtor2016(object):
                 bar += apoio.baricentro(p1,p2,p3)
             return bar/float(n)
         
-        cg = (ro_asaf*bar(asaf)+ro_asat*bar(asat)+ro_ev*bar(ev))/(ro_asaf+ro_asat+ro_ev)
+        cg = (ro_asaf*bar(asaf)+ro_asat*bar(asat)+2.0*ro_ev*bar(ev))/(ro_asaf+ro_asat+2.0*ro_ev)
         cg = (m_asas*cg+self.m_motor*self.pos_motor)/(m_asas+self.m_motor)  
         p_vazio = m_asas+self.m_motor
         return cg, p_vazio
