@@ -592,12 +592,12 @@ def main(nome_arquivo, args_asa, args_eh, args_ev, args_fus, args_boom, inercia 
 if __name__ == '__main__':
     args_asa = ['S1223 MOD2015', 'S1223 MOD2015', 2.86, 0.448107662504, 0.291765181867,
                 '?', 0.37447265625, 0.99834, -3.0,
-                0.0356087340335,-0.201,0.12]
+                0.0356087340335,-0.201,0.10]
     args_eh = ['NACA 0011', 1.17, 0.288571, 0.288571,'?',
                0.0, 0.5650875, 2.8, 0.0,0.425,0.1855]
 
-    args_ev = ['NACA 0011', 0.0, 0.288571, 0.281557,'?',
-               0.0, 0.122112, 0.0, 0.0,0.425,0.1855]
+    args_ev = ['NACA 0011', 0.0, 0.288571, 0.2,'?',
+               0.0, 0.154, 0.0, 0.0,0.425,0.1855]
 
     def f(nome_arquivo, args_asa, args_eh, args_ev):
 
@@ -632,10 +632,13 @@ if __name__ == '__main__':
                                          c_raiz_ev, dist_trans_ev, c_ponta_ev, bev,
                                          c_mac_ev,False).gerar()     
         x_ev = x_ev + xev
+        y_ev = y_ev + semi_beh/3.0
         z_ev = -z_ev + zev
-        obj_ev = ('ev',x_ev,y_ev,z_ev,tri_ev)
+        obj_ev1 = ('ev1',x_ev,y_ev,z_ev,tri_ev)
+        y_ev = y_ev - 2.0*semi_beh/3.0 
+        obj_ev2 = ('ev2',x_ev,y_ev,z_ev,tri_ev)
         
         
-        executarNaPasta('Graficos/STL3D')(escrever_ascii_stl)(nome_arquivo, obj_asa, obj_eh, obj_ev)
+        executarNaPasta('Graficos/STL3D')(escrever_ascii_stl)(nome_arquivo, obj_asa, obj_eh, obj_ev1, obj_ev2)
     
     f('Aeronave2016', args_asa, args_eh, args_ev)

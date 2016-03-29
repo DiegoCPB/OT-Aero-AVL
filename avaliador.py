@@ -91,7 +91,7 @@ class Avaliador2016(con.Construtor2016):
         print("         Corda :                %f m" %(self.c_asat))
         print("         Angulo de incidencia : %f graus" %(self.ang_cr_asat))
         print("         Angulo de torsao :     %f graus" %(self.epsilon_asat))
-        print("        -------------- EV --------------")
+        print("        ------------ EV (x2) -----------")
         print("         Area :                 %f m^2" %(self.S_ev))
         print("         Envergadura :          %f m" %(self.b_ev))
         print("         Corda :                %f m" %(self.c_ev))
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     dz_asas = 0.0655481135642505
     alfa = 0.0
     vel = 20.0
-    x_motor = -0.6169047374302623
+    x_motor = -0.7
     
     #Asa frontal
     x_ba_asaf = -0.19072996243401064
@@ -303,11 +303,11 @@ if __name__ == '__main__':
     perfilr_asat = perfilp_asat = 'NACA 0011'
     
     # EV
-    c_ev = 0.14
+    c_ev = 0.20
     perfil_ev = 'NACA 0011'
     
     #Plotar gráficos
-    plot = True
+    plot = False
     
     aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,

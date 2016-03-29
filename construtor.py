@@ -165,7 +165,7 @@ class Construtor2016(object):
     def cone2(self,x,y):
         z0 = self.h_cone
         c = self.d_cone/(2.*z0)
-        z = -np.sqrt((x**2+y**2)/c)+z0
+        z = -np.sqrt(x**2+y**2)/c+z0
         if z < 0.0:
             raise ValueError("Posicao fora dos limites do cone")
         return z
@@ -353,7 +353,7 @@ class Construtor2016(object):
             """
             Retorna a posiçao da corda da ponta
             """
-            y = 0
+            y = self.bw_asat/6.0
             x_ba = self.pos_ba_cr_asat[0]
             x_bf = x_ba+corda            
             z_ba = z_bf =  min(self.cone2(x_ba,y),self.cone2(x_bf,y))
