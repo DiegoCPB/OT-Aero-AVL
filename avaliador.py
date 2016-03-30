@@ -97,6 +97,10 @@ class Avaliador2016(con.Construtor2016):
         print("         Corda :                %f m" %(self.c_ev))
         print("        ------------ MOTOR -------------")
         print("         Posicao :              %s m" %(self.pos_motor))
+        
+        print("\nInercia da aeronave:")
+        print("         Peso vazio :           %s kg" %(1.5*self.m_vazio))
+        print("\nTensor de Inercia (kg*m^2) : \n%s" %(self.J))
             
         # Avaliacao de carga paga máxima
         args_aero = [self.name,self.alfa,self.case_alphas,self.m_vazio,\
@@ -286,7 +290,7 @@ if __name__ == '__main__':
     dz_asas = 0.0655481135642505
     alfa = 0.0
     vel = 20.0
-    x_motor = -0.7
+    x_motor = -0.34
     
     #Asa frontal
     x_ba_asaf = -0.19072996243401064

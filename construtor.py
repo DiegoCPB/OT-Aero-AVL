@@ -439,7 +439,10 @@ class Construtor2016(object):
         ro_asaf, ro_asat, asaf, asat, ev = self.formato()
         ro_ev = self.ro_estabilizador        
         
-        m_asas = ro_asaf*self.S_asaf+ro_asat*self.S_asat+2.0*ro_ev*self.S_ev
+        m_asaf = ro_asaf*self.S_asaf
+        m_asat = ro_asat*self.S_asat
+        m_ev =  2.0*ro_ev*self.S_ev
+        m_asas = m_asaf+m_asat+m_ev
         
         def bar(asa):
             n = len(asa)
@@ -449,7 +452,7 @@ class Construtor2016(object):
                 bar += apoio.baricentro(p1,p2,p3)
             return bar/float(n)
         
-        cg = (ro_asaf*bar(asaf)+ro_asat*bar(asat)+2.0*ro_ev*bar(ev))/(ro_asaf+ro_asat+2.0*ro_ev)
+        cg = (m_asaf*bar(asaf)+m_asat*bar(asat)+m_ev*bar(ev))/(m_asaf+m_asat+m_ev)
         cg = (m_asas*cg+self.m_motor*self.pos_motor)/(m_asas+self.m_motor)  
         p_vazio = m_asas+self.m_motor
         return cg, p_vazio
@@ -571,7 +574,7 @@ class Construtor2016(object):
                 Ainc = self.ang_ct_asat
             elif string == 'raiz_ev':
                 Xle,Yle,Zle = self.pos_ba_cr_ev
-                Chord = self.c_ev
+                Chord = self.c_asat
                 Ainc = 0.0
             elif string == 'ponta_ev':
                 Xle,Yle,Zle = self.pos_ba_ct_ev
