@@ -338,6 +338,36 @@ class Analise(Read):
             
         return s_extra,s_intra
         
+    def linha_media(self):
+        """
+        Gera a função da linha média do perfil.
+        """
+        extra, intra = self.spline()
+        beta = np.linspace(0,np.pi,200)
+        xs = 0.5*(1.0-np.cos(beta))
+        media = 0.5*(extra(xs)+intra(xs))        
+        s_media = InterpolatedUnivariateSpline(xs,media)
+        
+        
+        @apoio.executarNaPasta('Graficos/Aerodinamica')
+        def grafico():
+            name = self.name
+            plt.figure()
+            plt.grid('on')
+            plt.axis('equal')
+            plt.title('%s' %(name))
+            plt.xlim([-0.1,1.1])
+            plt.plot(xs,extra(xs),'-r')
+            plt.plot(xs,intra(xs),'-r',label = 'Spline')
+            plt.plot(xs,media,'--k',label = 'Linha Media')
+            plt.legend(loc='best')
+            plt.savefig('linha_media_%s.png' %(name), bbox_inches='tight', dpi=200)
+            
+        if self.p:
+            grafico()        
+        
+        return s_media
+        
     def coords_padrao(self,n):
         """
         A partir dos pontos lidos no arquivo .dat do perfil, gera um conjunto
@@ -869,15 +899,7 @@ class Analise(Read):
         print(tabelaAsa)
 
 if __name__ == "__main__":    
-    perfil = 'S1223 MOD2015' 
-        
+    perfil = 'S1223 MOD2015'   
     analise = Analise(perfil,p=True)
-    c = analise.coords_padrao(50)  
-    plt.axis('equal')
-#    plt.plot(c[0],c[1],'k.')
-#    print analise.K2_Nicolai(190000,0.0)
-#    print analise.interpReMach_Clmax(354000,0.045)
-#    analise.principal(0.0)
-    print analise.ajustelinear(268000, 0.0)['dCl'][0]*180/(2*np.pi**2)
-#    print analise.getClCdCm_alfa(-2.0,320000,0.0)
-#    analise.plotClCd(190000,0.0)
+    
+    analise.linha_media()
