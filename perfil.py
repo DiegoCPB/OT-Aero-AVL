@@ -899,7 +899,7 @@ class Analise(Read):
         print(tabelaAsa)
 
 if __name__ == "__main__":    
-    perfil = 'S1223 MOD2015'   
+    perfil = 'S1223 MOD2015 FLAP'   
     analise = Analise(perfil,p=True)
     
     analise.linha_media()

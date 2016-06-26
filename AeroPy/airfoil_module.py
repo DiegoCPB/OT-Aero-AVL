@@ -399,6 +399,10 @@ def find_flap(data, hinge, extra_points = None):
                     static_data['y'].append(data['y'][i+1])
                     static_data['x'].append(data['x'][i+2])
                     static_data['y'].append(data['y'][i+2])
+                    # Adds at the beginning
+                    flap_data['x'].insert(0,data['x'][i-1])
+                    flap_data['y'].insert(0,data['y'][i-1])
+
             flap_data['x'].append(xi)
             flap_data['y'].append(yi)
             
@@ -414,6 +418,10 @@ def find_flap(data, hinge, extra_points = None):
                     static_data['y'].append(data['y'][i-2])
                     static_data['x'].append(data['x'][i-1])
                     static_data['y'].append(data['y'][i-1])
+                    # Adicionado por mim
+                    flap_data['x'].append(data['x'][i+1])
+                    flap_data['y'].append(data['y'][i+1])
+
                 flap_data['x'].append(hinge['x'])
                 flap_data['y'].append(hinge['y_' + type])
                 static_data['x'].append(hinge['x'])

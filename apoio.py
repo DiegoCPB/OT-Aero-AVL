@@ -8,10 +8,11 @@ Created on Wed Jan 27 19:19:22 2016
 print("\nCarregando modulos de 'Apoio'...")
 
 try:
+    from contextlib import contextmanager
     import numpy as np
     import sys
     from time import clock
-    from os import chdir, makedirs, listdir, getcwd
+    from os import chdir, makedirs, listdir, getcwd, devnull
     from os.path import dirname, realpath, isfile, join
     from bisect import bisect_right, bisect_left
     print("Modulos de 'Apoio' foram carregados com sucesso!")
@@ -197,6 +198,16 @@ def salvarPrint(arquivo):
             return result
         return nested
     return wrapper
+    
+@contextmanager
+def esconderPrint():
+    with open(devnull, "w") as null:
+        old_stdout = sys.stdout
+        sys.stdout = null
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 def tempoDeExecucao(func):
     """
