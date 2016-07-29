@@ -7,6 +7,7 @@ Created on Sun Aug 16 20:59:22 2015
 import aero_module as ar
 import xfoil_module as xf
 import airfoil_module as af
+#import matplotlib.pyplot as plt
 
 def find_3D_coefficients(airfoil, alpha, Reynolds=0, iteration=10, NACA=True,
                          N=10, span=10., taper=1., chord_root=1, alpha_root=1.,
@@ -56,6 +57,8 @@ def calculate_flap_moment(x, y, alpha, x_hinge, deflection,
     alpha (degrees), calculate the moment coefficient around the joint at x_hinge
     and deflection in radians (unit_deflection = 'rad') or degrees 
     (unit_deflection = 'deg')"""
+    
+#    plt.plot(x,y)
 
     # If x and y are not dictionaries with keys upper and lower, make them
     # be so
@@ -94,6 +97,12 @@ def calculate_flap_moment(x, y, alpha, x_hinge, deflection,
                             lower_rotated, hinge, deflection, N = None, 
                             return_flap_i = True)
 
+    if len(flapped_airfoil['x']) != len(flapped_airfoil['y']):
+        raise ValueError("Error on Flapped Airfoil Geometry: x and y have different lenghts")
+    
+#    plt.plot(flapped_airfoil['x'],flapped_airfoil['y'],'.')
+#    plt.axis('equal')
+
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Third step: get new values of pressure coefficient
     xf.create_input(x = flapped_airfoil['x'], y_u = flapped_airfoil['y'],
@@ -116,8 +125,8 @@ if __name__ == '__main__':
     import math
 #    print find_3D_coefficients(airfoil='naca0012', alpha=1.)
     alpha = 0.
-    x_hinge = 0.25/0.6175
-    deflection = -math.pi/2. #0.17453292519943295 #0.0010573527055
+    x_hinge = 0.7#0.25/0.6175
+    deflection = -45*math.pi/180#math.pi/2. #0.17453292519943295 #0.0010573527055
     
     # generate original airfoil
     airfoil = "naca0012"

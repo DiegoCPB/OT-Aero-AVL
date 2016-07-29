@@ -116,13 +116,76 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
         m_a = 1.5*peso_vazio
         CL_decol = funcao_CL(alfa_decol)
         CDi_decol = funcao_CDi(CL_decol)
+        CD_decol = 2*CDi_decol
         dec = decol.Analise(S_asaf, m_a, 
-                            CL_decol, CLmax, 2*CDi_decol, p)
+                            CL_decol, CLmax, CD_decol, p)
         CPaga = dec.c_paga_max()
         vd = dec.vel_decol(CPaga)
         
+        def mapa(tipo=1,n=50):
+            """
+            Essa funçao gera um gráfico de curvas de nível para a avaliação do efeito da 
+            variaçao dos parametros de CL e CD da aeroanve para a decolagem.
+            Essa análise é importante para a decisão de se utilizar ou não dispositivos hipersustentadores.
+            """
+            if tipo == 1:
+                x = np.linspace(0.8*CLmax,1.2*CLmax,n)
+                y = np.linspace(0.8*CD_decol,1.2*CD_decol,n)
+            elif tipo == 2:
+                x = np.linspace(0.8*CL_decol,1.2*CL_decol,n)
+                y = np.linspace(0.8*CD_decol,1.2*CD_decol,n)
+            elif tipo == 3:
+                x = np.linspace(0.8*CLmax,1.2*CLmax,n)
+                y = np.linspace(0.8*CL_decol,1.2*CL_decol,n)
+            
+            X, Y = np.meshgrid(x,y)
+            
+            Z = np.zeros([n,n])
+            
+            with apoio.esconderPrint():
+                for i in range(n):
+                    for j in range(n):
+                        if tipo == 1:
+                            element = decol.Analise(S_asaf, m_a, CL_decol, X[i,j], Y[i,j], p=False)
+                        elif tipo == 2:
+                            element = decol.Analise(S_asaf, m_a, X[i,j], CLmax, Y[i,j], p=False)
+                        elif tipo == 3:
+                            element = decol.Analise(S_asaf, m_a, Y[i,j], X[i,j], CD_decol, p=False)
+                        
+                        Z[i,j] = element.c_paga_max()
+            
+            @apoio.executarNaPasta('Graficos/Desempenho')
+            def grafico():
+                plt.figure()
+                plt.grid('on')
+#                plt.axis('equal')
+                plt.title('Carga Paga Maxima ($kg$)')
+                if tipo == 1:
+                    plt.xlabel('$\Delta C_{L_{max}}$')
+                    plt.ylabel('$\Delta C_D$')
+                    CS = plt.contour(X-CLmax, Y-CD_decol, Z, colors='k')
+                    plt.clabel(CS, inline=1, fontsize=10)
+                    plt.savefig("mapaDecolagem1.png", bbox_inches='tight', dpi=200) 
+                elif tipo == 2:
+                    plt.xlabel('$\Delta C_L$')
+                    plt.ylabel('$\Delta C_D$')
+                    CS = plt.contour(X-CL_decol, Y-CD_decol, Z, colors='k')
+                    plt.clabel(CS, inline=1, fontsize=10)
+                    plt.savefig("mapaDecolagem2.png", bbox_inches='tight', dpi=200)
+                elif tipo == 3:
+                    plt.xlabel('$\Delta C_{L_{max}}$')
+                    plt.ylabel('$\Delta C_L$')
+                    CS = plt.contour(X-CLmax, Y-CL_decol, Z, colors='k')
+                    plt.clabel(CS, inline=1, fontsize=10)
+                    plt.savefig("mapaDecolagem3.png", bbox_inches='tight', dpi=200)
+             
+            grafico()   
+        
         if p:
             dec.vel_corrida(CPaga)
+            mapa(1)
+            mapa(2)
+            mapa(3)  
         
         print("\nCalculando parametros de decolagem para pista de %.1f m" %(dec.c))
         print("         Area de referencia :          %f m^2" %(S_asaf))        

@@ -276,3 +276,5 @@ class Analise(object):
             print("         Calculo completo.")
             return fim/mult
         
+        
+        

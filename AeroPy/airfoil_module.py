@@ -430,7 +430,11 @@ def find_flap(data, hinge, extra_points = None):
                 type = 'lower'
                 
             static_data['x'].append(xi)
-            static_data['y'].append(yi)   
+            static_data['y'].append(yi) 
+            
+            print("lista x: %d" %(len(flap_data['x'])))
+            print("lista y: %d" %(len(flap_data['y'])))
+
     return static_data, flap_data
 
 def rotate(upper, lower, origin, theta, unit_theta = 'deg'):

@@ -302,7 +302,7 @@ if __name__ == '__main__':
     # Asa traseira
     x_bf_asat = 0.7139722884775602
     c_asat = 0.2885711556933519
-    ang_asat = 1.1756835144489113
+    ang_asat = -1
     epsilon_asat = 2.8652532575807257
     perfilr_asat = perfilp_asat = 'NACA 0011'
     
@@ -311,7 +311,7 @@ if __name__ == '__main__':
     perfil_ev = 'NACA 0011'
     
     #Plotar gráficos
-    plot = False
+    plot = True
     
     aviao = Avaliador2016(name,dz_asas,alfa,vel, x_motor, 
                           x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,

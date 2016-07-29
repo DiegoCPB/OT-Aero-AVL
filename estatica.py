@@ -42,11 +42,11 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
             elif i == 21:
                 Cntot = float(words[5])
             elif i == 38:
-                Clb = float(words[8])
+                Clb = float(words[8])*np.pi/180
             elif i == 39:
-                Cma = float(words[6])
+                Cma = float(words[6])*np.pi/180
             elif i == 40:
-                Cnb = float(words[8])
+                Cnb = float(words[8])*np.pi/180
             elif i == 50:
                 Xnp = float(words[4])
             elif i == 52:
@@ -154,7 +154,6 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
 
         plt.figure()
         plt.grid('on')
-        plt.axis('equal')
         plt.plot(X, Y, 'b-', label=r'$\alpha_{trim}=%.2f$ graus' %(alfa_trim))
         plt.title('Estabilidade Longitudinal da Aeronave')
         plt.xlabel(r'$\alpha$ (graus)')

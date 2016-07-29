@@ -84,7 +84,7 @@ class Superficie_comando(perfil.Analise):
         """
         alpha = self.alfa
         x_hinge = 1-self.p_c
-        x,y = self.aerofolio.coords_padrao(100) #.getPoints()
+        x,y = self.aerofolio.getPoints()
         delta = delta*np.pi/180
         
         @apoio.executarNaPasta("AeroPy")
@@ -93,7 +93,7 @@ class Superficie_comando(perfil.Analise):
                 try:
                     return aeropy.calculate_flap_moment(x, y, alpha, x_hinge, delta,
                                                         unit_deflection = 'rad')
-                except:
+                except ValueError:
                     return np.nan
         return cm_hinge()
 
@@ -115,20 +115,23 @@ class Superficie_comando(perfil.Analise):
         
         return Cm*0.5*rho*vel**2*corda**2*env
         
-    def principal(self,delta_min,delta_max,name,n = 10):
+    def principal(self,delta_min,delta_max,name,n = 20):
         name = str(name)
         delta = np.linspace(delta_min,delta_max,n)
+        thin_M = []
         xfoil_M = []
         
         for i in delta:
             xfoil_M.append(self.momento_servo(i,2))
+            thin_M.append(self.momento_servo(i,1))
             
-        @apoio.executarNaPasta('Graficos/Aerodinamica')
+        @apoio.executarNaPasta('Graficos/Aerodinamica/Comandos')
         def grafico():
             plt.figure()
             plt.title(r'Torque requerido %s ($v=%.1f$ $m/s$)' %(name.upper(),vel))
             plt.grid('on')
             plt.plot(delta,xfoil_M,label = "XFoil")
+            plt.plot(delta,thin_M,label = "Thin Airfoil")
             plt.legend(loc='best')
             plt.xlabel(r'$\delta$ ($graus$)')
             plt.ylabel(r'Torque ($Nm$)')
@@ -148,12 +151,12 @@ if __name__ == "__main__":
     aileron = Superficie_comando("S1223 MOD2015",2.86,0.3695,0.2436,0.480,vel)
     profundor = Superficie_comando("NACA 0011",1.0,0.2886,0.40,1.1301,vel)
     
-#    print aileron.momento_servo(15,2)    
+#    print aileron.momento_servo(-15,2)    
     
     fl = flap.principal(0,30,"flap")
     ail = aileron.principal(-15,15, "aileron")
     prof = profundor.principal(-20,20, "profundor")
-#    
+    
     print("\nTorques requeridos a %.1f m/s : [min, max]" %(vel))
     print("Aileron :   %s Nm" %(ail))
     print("Profundor : %s Nm" %(prof))

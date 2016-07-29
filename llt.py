@@ -103,9 +103,9 @@ class S_sustentadora(object):
 
         if self.AR < 4.0:
             print("\n######################################################")
-            print("# ATENCAO: AR = %.2f < 4.                            #" %(self.AR)) 
-            print("#        O LLT retorna valores nao confiaveis.       #")
-            print("#        Reveja a geometria do %s.                   #" %(type(self).__name__))
+            print(" ATENCAO: AR = %.2f < 4.                            " %(self.AR)) 
+            print("        O LLT retorna valores nao confiaveis.       ")
+            print("        Reveja a geometria do %s.                   " %(type(self).__name__))
             print("######################################################")
         
         # Discretização da asa
@@ -506,7 +506,6 @@ class S_sustentadora(object):
             
     def de_da(self,x,z):
         """
-
         * Cálculo da variacao do coeficiente de "downwash" do plano de simetria
           da asa para a posicao do CA do EH.
         * 'x' e 'z' representam as coordenadas do centro aerodinâmico do EH
@@ -865,7 +864,7 @@ class S_sustentadora(object):
             plt.legend(loc='best')
             plt.savefig("distLift.png", bbox_inches='tight', dpi=200)
             plt.close()
-
+            
         def cd0():
             plt.figure()
             plt.grid('on')
@@ -949,11 +948,16 @@ class S_sustentadora(object):
         plt.plot(y, elipt_neg, 'r-', label='Asa eliptica')
         plt.plot(y, planta_pos, 'b-')
         plt.plot(y, planta_neg, 'b-', label='Asa em planta')
+        for i in range(self._n):
+            if i == 0:
+                plt.plot([y[i]]*2,[planta_pos[i],planta_neg[i]], '--', color='#545454', label = 'Secoes')
+            else:
+                plt.plot([y[i]]*2,[planta_pos[i],planta_neg[i]], '--', color='#545454')
         plt.legend(loc='best')
         plt.fill_between(y, elipt_pos, elipt_neg, color='r', alpha=0.3)
         plt.fill_between(y, planta_pos, planta_neg, color='b', alpha=0.3)             
         plt.savefig("geometriaAsa.png", bbox_inches='tight', dpi=200)
-        plt.close()
+#        plt.close()
         
 if __name__ == "__main__":
 #    Geometria da aeronave:
@@ -988,7 +992,12 @@ if __name__ == "__main__":
 #        
 #    print fmin(f,0.5,maxfun=30)
     
-    Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 19.4, 0.797, 1.997, 0.65,
+    Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 20.1, 0.797, 1.997, 0.65,
                           -3.0, 20.0, 25, p = False)
+#    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans,Asa1.mac
+    print Asa1.pos_mac,Asa1.mac
     
-    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans,Asa1.mac
+#    x_ca_eh = 0.425401+0.25*0.288571
+#    x_ca_asa = -0.190730+0.23*0.399177
+#    dz = 0.0655481135642505
+#    Asa1.de_da(x_ca_eh-x_ca_asa,dz)

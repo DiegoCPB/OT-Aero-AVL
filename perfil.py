@@ -490,6 +490,49 @@ class Analise(Read):
             
         
         grafico()
+    
+    def plotRangeRe(self,Re_i,Re_f,mach,option='Cl'):
+        """
+        Plota parâmetros aerodinâmicos do perfil para um intervalo de reynolds
+        e um mach definidos a partir dos dados tabelados.
+        """
+        if mach not in self.listaMach:
+            raise ValueError("Numero de MAch nao tabelado")
+        
+        listaRe = list(self.listaRe)
+        Re_i = apoio.intervalo(listaRe,Re_i)[0]
+        Re_f = apoio.intervalo(listaRe,Re_f)[1]
+        index_i = listaRe.index(Re_i)
+        index_f = listaRe.index(Re_f)
+        listaRe = listaRe[index_i:index_f]        
+        
+        @apoio.executarNaPasta('Graficos/Aerodinamica')
+        def grafico():
+            plt.figure()
+            plt.title('Polares')
+            plt.grid('on')
+            plt.xlabel(r'$\alpha$ ($graus$)')        
+            if option == 'Cl':        
+                plt.ylabel(r'$C_l$')
+                par = 0
+            elif option == 'Cd':
+                plt.ylabel(r'$C_d$')
+                par = 1
+            elif option == 'Cm':
+                plt.ylabel(r'$C_m$')
+                par = 2
+            for i in range(len(listaRe)):
+                pontos = self.getClCdCm(listaRe[i], mach)
+                x = []
+                y = []
+                for j in range(len(pontos)):
+                    x.append(pontos[j][0])
+                    y.append(pontos[j][1][par])
+                plt.plot(x, y, label=r'$Re = %d$' %(listaRe[i]))
+                plt.legend(loc='best')
+            plt.savefig("Polares_intervalo.png", bbox_inches='tight', dpi=200)
+            
+        grafico()
         
     def funcaoClCdCm(self, Re, mach):
         """
@@ -899,7 +942,8 @@ class Analise(Read):
         print(tabelaAsa)
 
 if __name__ == "__main__":    
-    perfil = 'S1223 MOD2015 FLAP'   
-    analise = Analise(perfil,p=True)
+    perfil = 'S1223 MOD2015'   
+    analise = Analise(perfil,p=False)
     
-    analise.linha_media()
+    
+    analise.plotRangeRe(100000,220000,0.0)
