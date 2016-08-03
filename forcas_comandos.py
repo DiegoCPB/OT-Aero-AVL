@@ -18,6 +18,7 @@ except ImportError:
 
 import apoio
 import AeroPy.AeroPy as aeropy
+import AeroPy.xfoil_module as xf
 import perfil
 
 class Superficie_comando(perfil.Analise):
@@ -95,6 +96,7 @@ class Superficie_comando(perfil.Analise):
                                                         unit_deflection = 'rad')
                 except ValueError:
                     return np.nan
+                    
         return cm_hinge()
 
     def momento_servo(self,delta, option = 2):
@@ -118,47 +120,44 @@ class Superficie_comando(perfil.Analise):
     def principal(self,delta_min,delta_max,name,n = 20):
         name = str(name)
         delta = np.linspace(delta_min,delta_max,n)
-        thin_M = []
-        xfoil_M = []
+        xfoil_Cm = []
         
         for i in delta:
-            xfoil_M.append(self.momento_servo(i,2))
-            thin_M.append(self.momento_servo(i,1))
+            xfoil_Cm.append(self.xfoil_flap_cm(i))
             
         @apoio.executarNaPasta('Graficos/Aerodinamica/Comandos')
         def grafico():
             plt.figure()
-            plt.title(r'Torque requerido %s ($v=%.1f$ $m/s$)' %(name.upper(),vel))
+            plt.title(r'$C_m$ requerido %s' %name.upper())
             plt.grid('on')
-            plt.plot(delta,xfoil_M,label = "XFoil")
-            plt.plot(delta,thin_M,label = "Thin Airfoil")
+            plt.plot(delta,xfoil_Cm,label = "XFoil")
             plt.legend(loc='best')
             plt.xlabel(r'$\delta$ ($graus$)')
-            plt.ylabel(r'Torque ($Nm$)')
-            plt.savefig("Torque_%s.png" %(name.lower()), bbox_inches='tight', dpi=200)
+            plt.ylabel(r'$C_m$')
+            plt.savefig("Cm_%s.png" %(name.lower()), bbox_inches='tight', dpi=200)
         
         grafico()
 
-        xfoil_M = np.array(xfoil_M)
-        xfoil_M = xfoil_M[np.logical_not(np.isnan(xfoil_M))]           
+        xfoil_Cm = np.array(xfoil_Cm)
+        xfoil_Cm = xfoil_Cm[np.logical_not(np.isnan(xfoil_Cm))]           
         
-        return [min(xfoil_M),max(xfoil_M)]
+        return [min(xfoil_Cm),max(xfoil_Cm)]
         
 if __name__ == "__main__":
-    
-    vel = 24.0
-    flap = Superficie_comando("S1223 MOD2015",2.86,0.448,0.2,0.3084,vel)    
-    aileron = Superficie_comando("S1223 MOD2015",2.86,0.3695,0.2436,0.480,vel)
-    profundor = Superficie_comando("NACA 0011",1.0,0.2886,0.40,1.1301,vel)
+    vel = 24
+#    flap = Superficie_comando("S1223 MOD2015",2.86,0.448,0.2,0.3084,vel)    
+    aileron = Superficie_comando("S1223 MOD2015",0.0,0.3695,0.2436,0.480,vel)
+    profundor = Superficie_comando("NACA 0011",0.0,0.2886,0.40,1.1301,vel)
+#    leme = Superficie_comando("NACA 0011",0.0,0.25,0.75,0.14,vel)
     
 #    print aileron.momento_servo(-15,2)    
     
-    fl = flap.principal(0,30,"flap")
+#    le = leme.principal(-15,15,"Leme")
     ail = aileron.principal(-15,15, "aileron")
-    prof = profundor.principal(-20,20, "profundor")
+    prof = profundor.principal(0,20, "profundor")
     
     print("\nTorques requeridos a %.1f m/s : [min, max]" %(vel))
-    print("Aileron :   %s Nm" %(ail))
-    print("Profundor : %s Nm" %(prof))
-    print("Flap :      %s Nm" %(fl))      
+    print("Aileron :   %s" %(ail))
+    print("Profundor : %s" %(prof))
+#    print("Leme :      %s" %(le))      
     

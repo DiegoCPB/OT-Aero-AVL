@@ -24,11 +24,15 @@ class S_sustentadora_completa(llt.S_sustentadora):
     Essa classe exerce todas as funçoes da classe S_sustentadora,
     com a adição do efeito da fuselagem e flaps na parte retangular da asa.
     """
-    def __init__(self, larg_fus, a_fus,
+    def __init__(self, larg_fus, a_fus, cd0_fus,
                  perfil_raiz, perfil_ponta, perfil_flap,
                  alfa, Sw, bw, afil, graus_torcao, vel, n, otimizar = True, p = False):
         self._larg_fus = larg_fus 
+        
+        #Os valores abaixo devem ser adimensionalizados pela corda raiz da asa
         self.a_fus = a_fus*180/np.pi
+        self.cd0_fus = cd0_fus
+        
         self._perfil_flap = perfil.Analise(perfil_flap)
         
         # Se a asa apresenta afilamento, o flap se estenderá sobre a seçao retangular da asa
@@ -116,7 +120,7 @@ class S_sustentadora_completa(llt.S_sustentadora):
             if self._perfil_raiz.name != self._perfil_ponta.name and self._perfil_raiz.name != self._perfil_flap.name:
                 for i in range(dim):
                     if y_secao[i] <= l_fus:
-                        CD0s[i] = 0.0
+                        CD0s[i] = self.cd0_fus
                     elif y_secao[i] > l_fus and y_secao[i] < trans:
                         CD0s[i] = self._perfil_flap.interpReMachAlfa(alpha_secao[i], Re_asa[i], mach, 'Cd')  
                     else:
@@ -127,7 +131,7 @@ class S_sustentadora_completa(llt.S_sustentadora):
             elif self._perfil_raiz.name != self._perfil_flap.name:
                 for i in range(dim):
                     if y_secao[i] <= l_fus:
-                        CD0s[i] = 0.0
+                        CD0s[i] = self.cd0_fus
                     elif y_secao[i] > l_fus and y_secao[i] < trans:
                         CD0s[i] = self._perfil_flap.interpReMachAlfa(alpha_secao[i], Re_asa[i], mach, 'Cd')
                     else:                    
@@ -136,7 +140,7 @@ class S_sustentadora_completa(llt.S_sustentadora):
             else:
                 for i in range(dim):
                     if y_secao[i] <= l_fus:
-                        CD0s[i] = 0.0
+                        CD0s[i] = self.cd0_fus
                     else:
                         CD0s[i] = self._perfil_raiz.interpReMachAlfa(alpha_secao[i], Re_asa[i], mach, 'Cd')
                 
@@ -444,5 +448,7 @@ class S_sustentadora_completa(llt.S_sustentadora):
         return CM
         
 if __name__ == "__main__":
-    Asa1 = S_sustentadora_completa(0.1,0.005,"S1223 MOD2015", "S1223 MOD2015", "S1223 MOD2015 FLAP",
-                                   19.4, 0.797, 1.997, 0.65,-3.0, 20.0, 150, p = True)
+    Asa1 = S_sustentadora_completa(0.12,0.006,0.0088, #Fuselagem
+                                   "S1223 MOD2015", "S1223 MOD2015", "S1223 MOD2015",
+                                   22.5, 0.797, 1.997, 0.65,-3.0, 13.7, 150, p = False)
+    print Asa1.de_da((1-0.23)*0.190730+1.25*0.425401,0.065)

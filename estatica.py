@@ -22,6 +22,14 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
     Funcao que retorna a pontuacao da estabilidade estática
     e a posicao do ponto neutro (centro aerodinamico do aviao)
     """
+
+    def sinal(b):
+        if b >= 0.0:
+            sinal = '+'
+        else:
+            sinal = '-'
+        return sinal         
+    
     @executarNaPasta('Runs')
     def getValues():
         """
@@ -151,10 +159,15 @@ def estabilidade_estatica(name,trim_desejado,alfa_estol,vel,
         """
         X = np.linspace(0, alfa_estol)
         Y = Cmtot + Cma*(X-alpha)
+        
+        fCm = np.polyfit(X,Y,1)
+        
+        string1 = r'$C_M=%.3f*\alpha %s %.3f$'%(fCm[0],sinal(fCm[1]),abs(fCm[1]))
+        string2 = r'$\alpha_{trim}=%.2f$ graus' %(alfa_trim)
 
         plt.figure()
         plt.grid('on')
-        plt.plot(X, Y, 'b-', label=r'$\alpha_{trim}=%.2f$ graus' %(alfa_trim))
+        plt.plot(X, Y, 'b-', label=string1+'\n'+string2)
         plt.title('Estabilidade Longitudinal da Aeronave')
         plt.xlabel(r'$\alpha$ (graus)')
         plt.ylabel(r'$C_M$')

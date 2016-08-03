@@ -84,9 +84,7 @@ class Read(object): #Lê os arquivos na pasta Perfis
         filename = '%s_T1_Re%.3f_M%.2f_N9.0.txt' %(name, Re*1e-6, mach)
         try:
             f = open(filename, 'r')
-        except IOError as er:
-            print(er)
-            print('')
+        except IOError:
             raise
             
         flines = f.readlines()
@@ -497,14 +495,34 @@ class Analise(Read):
         e um mach definidos a partir dos dados tabelados.
         """
         if mach not in self.listaMach:
-            raise ValueError("Numero de MAch nao tabelado")
+            raise ValueError("Numero de Mach nao tabelado")
         
         listaRe = list(self.listaRe)
+        print listaRe
         Re_i = apoio.intervalo(listaRe,Re_i)[0]
         Re_f = apoio.intervalo(listaRe,Re_f)[1]
         index_i = listaRe.index(Re_i)
         index_f = listaRe.index(Re_f)
-        listaRe = listaRe[index_i:index_f]        
+        listaRe = listaRe[index_i:index_f]   
+        
+        if option == 'Cl':        
+            par = 0
+        elif option == 'Cd':
+            par = 1
+        elif option == 'Cm':
+            par = 2
+        
+        x = []
+        y = []
+        for j in range(len(listaRe)):
+            pontos = self.getClCdCm(listaRe[j], mach)
+            val1 = []
+            val2 = []
+            for k in range(len(pontos)):
+                val1.append(pontos[k][0])
+                val2.append(pontos[k][1][par])
+            x.append(val1)
+            y.append(val2)
         
         @apoio.executarNaPasta('Graficos/Aerodinamica')
         def grafico():
@@ -514,22 +532,13 @@ class Analise(Read):
             plt.xlabel(r'$\alpha$ ($graus$)')        
             if option == 'Cl':        
                 plt.ylabel(r'$C_l$')
-                par = 0
             elif option == 'Cd':
                 plt.ylabel(r'$C_d$')
-                par = 1
             elif option == 'Cm':
                 plt.ylabel(r'$C_m$')
-                par = 2
-            for i in range(len(listaRe)):
-                pontos = self.getClCdCm(listaRe[i], mach)
-                x = []
-                y = []
-                for j in range(len(pontos)):
-                    x.append(pontos[j][0])
-                    y.append(pontos[j][1][par])
-                plt.plot(x, y, label=r'$Re = %d$' %(listaRe[i]))
-                plt.legend(loc='best')
+            for i in range(len(listaRe)):    
+                plt.plot(x[i], y[i], label=r'$Re = %d$' %(listaRe[i]))
+            plt.legend(loc='best')
             plt.savefig("Polares_intervalo.png", bbox_inches='tight', dpi=200)
             
         grafico()
@@ -944,6 +953,6 @@ class Analise(Read):
 if __name__ == "__main__":    
     perfil = 'S1223 MOD2015'   
     analise = Analise(perfil,p=False)
+    analise.principal(0.0)
     
-    
-    analise.plotRangeRe(100000,220000,0.0)
+#    analise.plotRangeRe(100000,220000,0.0)

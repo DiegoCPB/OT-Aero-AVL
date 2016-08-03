@@ -957,7 +957,7 @@ class S_sustentadora(object):
         plt.fill_between(y, elipt_pos, elipt_neg, color='r', alpha=0.3)
         plt.fill_between(y, planta_pos, planta_neg, color='b', alpha=0.3)             
         plt.savefig("geometriaAsa.png", bbox_inches='tight', dpi=200)
-#        plt.close()
+        plt.close()
         
 if __name__ == "__main__":
 #    Geometria da aeronave:
@@ -986,18 +986,16 @@ if __name__ == "__main__":
 #        ------------ MOTOR -------------
 #         Posicao :              [-0.61690474  0.          0.2       ] m    
 
-#    def f(x):
-#        Asa = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 2.6, 0.797, 1.997, x, 0.0, 13.7, 25)
-#        return Asa.CDi
-#        
-#    print fmin(f,0.5,maxfun=30)
+#    Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 20.1, 0.797, 1.997, 0.65,
+#                          -3.0, 13.7, 25, p = False)
+#    print Asa1.de_da((1-0.23)*0.190730+1.25*0.425401,0.065)
+#    print Asa1.trans/(Asa1.bw/2)
+#    print Asa1.pos_mac,Asa1.mac
     
-    Asa1 = S_sustentadora("S1223 MOD2015", "S1223 MOD2015", 20.1, 0.797, 1.997, 0.65,
-                          -3.0, 20.0, 25, p = False)
-#    print Asa1.raiz,Asa1.ponta,Asa1.offset,Asa1.alfa_estol,Asa1.trans,Asa1.mac
-    print Asa1.pos_mac,Asa1.mac
+#    EH = S_sustentadora("NACA 0011", "NACA 0011", 13.5, 0.326, 1.13, 1.0, 
+#                        0.0, 13.7, 25, otimizar = False, p = False)
+#    print EH.CD0
     
-#    x_ca_eh = 0.425401+0.25*0.288571
-#    x_ca_asa = -0.190730+0.23*0.399177
-#    dz = 0.0655481135642505
-#    Asa1.de_da(x_ca_eh-x_ca_asa,dz)
+    EV = S_sustentadora("NACA 0011", "NACA 0011", 0.0, 0.034, 0.122, 0.5, 
+                        0.0, 13.7, 25, otimizar = False, p = False)
+    print EV.CD0
