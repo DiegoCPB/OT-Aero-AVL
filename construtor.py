@@ -46,7 +46,7 @@ class Construtor2016(object):
     * epsilon: Angulo de torcao
     """
     
-    d_cone = 2.5 # Diâmetro do cone
+    d_cone = 2.9 # Diâmetro do cone
     h_cone = 0.75 # Altura do cone
     m_motor = 0.731 # Peso de motor e hélice
     z_motor = 0.2 
@@ -55,10 +55,10 @@ class Construtor2016(object):
     
     # Parametros gerométricos
     x_min = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
-    z_min = 0.12 # Altura do ponto mais baixo da aeronave    
+    z_min = 0.7 # Altura do ponto mais baixo da aeronave    
     
     #Carga    
-    m_carga = 15 # Carga projetada em 2015
+    m_carga = 12 # Carga projetada em 2015
     ro_carga = 8.8e3 #Densidade do bronze
     
     #Parametros de discretizaçao das asas

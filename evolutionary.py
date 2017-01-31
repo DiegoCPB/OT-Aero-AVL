@@ -48,7 +48,7 @@ numero = 1
 
 # Os perfis das asas são constantes durante a iteraçao
 perfilr_asaf = perfilp_asaf = 'S1223 MOD2015'
-perfilr_asat = perfilp_asat = 'S1223 MOD2015'
+perfilr_asat = perfilp_asat = 'NACA 0011'
 perfil_ev = 'NACA 0011'
 
 
@@ -96,7 +96,7 @@ class Evolutionary(object):
     pbmut = 0.5
     pbcros = 0.5
     mu = 25
-    lamb = 25
+    lamb = 12
     #     dz_asas x_motor x_ba_asaf c_asaf ang_asaf epsilon_asaf x_bf_asat c_asat ang_asat epsilon_asat c_ev
     low = [0.05,  -1.0,   -1.0,     0.25,  0.0,     -5.0,        0.5,      0.25,  -5.0,    -5.0,        0.1]
     up =  [0.5,    0.0,    0.5,     0.5,   5.0,      0.0,        1.0,      0.5,    5.0,     5.0,        0.3]
