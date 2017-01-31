@@ -181,11 +181,11 @@ def aerodinamica(name,alfa_decol,lista_alfas,peso_vazio,
              
             grafico()   
         
-        if p:
-            dec.vel_corrida(CPaga)
-            mapa(1)
-            mapa(2)
-            mapa(3)  
+        #if p:
+        #    dec.vel_corrida(CPaga)
+        #    mapa(1)
+        #    mapa(2)
+        #    mapa(3)  
         
         print("\nCalculando parametros de decolagem para pista de %.1f m" %(dec.c))
         print("         Area de referencia :          %f m^2" %(S_asaf))        
