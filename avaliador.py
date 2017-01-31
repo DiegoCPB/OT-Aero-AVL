@@ -37,7 +37,7 @@ class Avaliador2016(con.Construtor2016):
     case_alphas = [0.0,3.0,7.0,10.0] #Angulos de ataque de análise
     number_trim_cases = 1 # Números de caso em condição de trimagem
     
-    config_m = [0.05,0.2] #Intervalo de valores aceitável para a margem estática
+    config_m = [0.08,0.2] #Intervalo de valores aceitável para a margem estática
     
     def __init__(self,name,dz_asas,alfa,vel,x_motor,
                  x_ba_asaf,c_asaf,ang_asaf,epsilon_asaf,perfilr_asaf, perfilp_asaf,
