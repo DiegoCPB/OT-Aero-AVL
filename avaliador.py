@@ -11,6 +11,7 @@ try:
     import os
     import psutil
     import time
+    import sys 
     print("Modulos de 'Avaliador' foram carregados com sucesso!")
 except ImportError:
     print("ERRO ao importar para 'Avaliador'\n")

@@ -55,7 +55,7 @@ class Construtor2016(object):
     
     # Parametros gerométricos
     x_min = 0.330-0.5*d_cone # Ponto mais a frente da aeronave
-    z_min = 0.7 # Altura do ponto mais baixo da aeronave    
+    z_min = 0.07 # Altura do ponto mais baixo da aeronave    
     
     #Carga    
     m_carga = 12 # Carga projetada em 2015
