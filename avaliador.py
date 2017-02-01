@@ -144,7 +144,11 @@ class Avaliador2016(con.Construtor2016):
         """
         Abre o AVL no python.
         """
-        self.ps = sp.Popen(['avl.exe'],stdin=sp.PIPE,stdout=open(os.devnull,'w'))
+        if sys.platform == 'linux2':
+            string = os.path.dirname(os.path.realpath(__file__))+'/avl_linux'
+        else:
+            string = 'avl_win32.exe'
+        self.ps = sp.Popen([string],stdin=sp.PIPE,stdout=open(os.devnull,'w'))
     
     def quit_avl(self):
         """
